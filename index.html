@@ -687,7 +687,7 @@ var XLSX={};function make_xlsx_lib(a){a.version="0.18.5",a.style_version="1.2.0"
 html,body{margin:0;height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
 h1,h2,h3,.disp{font-family:'Archivo',sans-serif;letter-spacing:-0.02em}
 button{font-family:inherit;cursor:pointer}
-.app{display:grid;grid-template-columns:var(--map-w) 1fr;height:100vh;overflow:hidden}
+.app{display:grid;grid-template-columns:var(--map-w) 24px minmax(0,1fr);height:100vh;overflow:hidden}
 .side{background:var(--panel);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
 .brand{display:flex;align-items:center;gap:12px;padding:15px 16px;border-bottom:1px solid var(--line);background:linear-gradient(160deg,#16241f,#0f1a17)}
 .brand .logo{height:36px;width:auto;flex:none;filter:drop-shadow(0 1px 3px rgba(0,0,0,.45))}
@@ -752,6 +752,15 @@ select.search{appearance:none;cursor:pointer}
 .cfbody{padding:13px 14px}
 .rccheck{display:flex;gap:7px;align-items:flex-start;font-size:11px;color:var(--muted);margin-top:10px;line-height:1.45;cursor:pointer}
 .rccheck input{margin-top:1px;flex-shrink:0}
+.rcmethods{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:2px 0 10px}
+.rcmethod{background:#162420;border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:9px;text-align:left;cursor:pointer;font-family:inherit;line-height:1.3}
+.rcmethod:hover{border-color:#61776f}
+.rcmethod.on{border-color:var(--accent);box-shadow:0 0 0 1px rgba(240,168,48,.22);background:rgba(240,168,48,.08)}
+.rcmethod b{display:block;font-family:'Archivo';font-size:11.5px;margin-bottom:2px}
+.rcmethod span{display:block;color:var(--accent);font-size:10.5px;font-weight:700}
+.rcmethod small{display:block;color:var(--muted);font-size:9.5px;margin-top:5px;line-height:1.35}
+.rcdesc{font-size:10.5px;color:var(--muted);background:rgba(255,255,255,.025);border:1px solid var(--line);border-radius:8px;padding:8px 9px;margin-bottom:9px;line-height:1.45}
+.rcfixed{font-size:10px;color:var(--accent);font-weight:700}
 #clusterBtn.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
 #rcRouteBtn.on{background:var(--accent)!important;color:var(--accent-ink)!important;border-color:var(--accent)!important}
 #rcRoadBtn.on{border-color:var(--accent);color:var(--ink)}
@@ -768,8 +777,18 @@ select.search{appearance:none;cursor:pointer}
 .hidden{display:none!important}
 .mapwrap{position:relative;min-height:0}
 #map{position:absolute;inset:0;background:#aad3df}
-.maptop{position:absolute;top:12px;left:12px;right:12px;z-index:500;display:flex;gap:10px;justify-content:space-between;pointer-events:none;flex-wrap:wrap}
-.maptop .rgt{display:flex;gap:8px;pointer-events:auto;position:relative}
+.maptop{position:absolute;top:12px;left:12px;right:12px;z-index:500;pointer-events:none;white-space:nowrap}
+.main-tools-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;min-width:0;width:100%;pointer-events:auto}
+.count-tools-stack{display:flex;flex-direction:column;align-items:stretch;gap:4px;flex:0 0 auto}
+.count-tools-stack .pill{padding:7px 11px;font-size:11.5px;text-align:center}
+.maphistory-row{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.invalidpill{font-family:inherit;cursor:pointer;color:#ffd27b;border-color:rgba(240,168,48,.72)}
+.invalidpill:hover{background:rgba(240,168,48,.18);border-color:var(--accent)}
+.maptop .rgt{display:flex;align-items:center;justify-content:flex-end;gap:6px;pointer-events:auto;position:relative;min-width:0;flex:1;margin-left:auto}
+.maptop .rgt .tbtn{padding:7px clamp(5px,.65vw,10px);font-size:clamp(9px,.76vw,11.5px);flex:0 1 auto}
+.maptop .basesel{min-width:112px;max-width:154px;flex:1 1 138px;padding:7px 25px 7px 10px;font-size:clamp(9px,.76vw,11.5px)}
+.maptop .menu{position:fixed;top:56px;right:12px}
+.leaflet-top.leaflet-left .leaflet-control-zoom{margin-top:86px;margin-left:12px}
 .pill{background:rgba(14,21,19,.86);backdrop-filter:blur(8px);border:1px solid var(--line);color:var(--ink);border-radius:999px;padding:8px 15px;font-size:12.5px;font-weight:600;pointer-events:auto;box-shadow:0 4px 18px rgba(0,0,0,.25)}
 .pill b{color:var(--accent);font-family:'Archivo'}
 .tbtn{background:rgba(14,21,19,.86);backdrop-filter:blur(8px);border:1px solid var(--line);color:var(--ink);border-radius:999px;padding:8px 15px;font-size:12.5px;font-weight:600}
@@ -828,9 +847,12 @@ select.search{appearance:none;cursor:pointer}
 .pop .popfoot{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px}
 .pop .gmap{display:inline-flex;align-items:center;gap:5px;background:#1a73e8;color:#fff;text-decoration:none;padding:6px 11px;border-radius:8px;font-size:11.5px;font-weight:700;white-space:nowrap}
 .pop .gmap:hover{background:#1666cc}
-.mfab{display:none}
 .backdrop{display:none}
-.mclose{display:none}
+.mclose{display:flex;align-items:center;justify-content:center;width:30px;height:30px;flex:none;margin-left:auto;background:#16241f;border:1px solid var(--line);color:var(--muted);border-radius:8px;font-size:13px}
+.sidebar-rail{position:relative;width:24px;height:100vh;z-index:950;border:0;border-left:1px solid #31423d;border-right:1px solid #0a100e;background:#111c18;color:var(--accent);cursor:pointer;padding:0;box-shadow:2px 0 10px rgba(0,0,0,.28)}
+.sidebar-rail span{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:16px;font-weight:900;line-height:1}
+.sidebar-rail:hover{background:#1b2a25;color:#ffd27b}
+@media(min-width:861px){.app{transition:grid-template-columns .24s ease}.side{transition:opacity .18s ease,visibility .18s ease}.sidebar-closed .app{grid-template-columns:0 24px minmax(0,1fr)}.sidebar-closed .side{opacity:0;visibility:hidden;overflow:hidden}}
 @media(max-width:860px){
   .app{display:block;height:100vh;overflow:hidden}
   .mapwrap{position:fixed;inset:0}
@@ -838,14 +860,16 @@ select.search{appearance:none;cursor:pointer}
   .side.open{transform:none}
   .backdrop{display:block;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;opacity:0;pointer-events:none;transition:opacity .26s}
   .backdrop.show{opacity:1;pointer-events:auto}
-  .mfab{display:inline-flex;align-items:center;gap:7px;position:fixed;right:14px;bottom:18px;z-index:900;background:var(--accent);color:var(--accent-ink);border:none;border-radius:999px;padding:13px 19px;font-weight:800;font-family:'Archivo';font-size:14px;box-shadow:0 6px 22px rgba(0,0,0,.45)}
+  .sidebar-rail{display:block;position:fixed;left:0;top:0;bottom:0;width:24px;height:100vh;z-index:1003;transition:left .26s cubic-bezier(.4,0,.2,1)}
+  .side.open + .sidebar-rail{left:min(88%,340px)}
   .mclose{display:flex;align-items:center;justify-content:center;width:30px;height:30px;flex:none;margin-left:auto;background:#16241f;border:1px solid var(--line);color:var(--muted);border-radius:8px;font-size:13px}
-  .maptop{top:10px;left:10px;right:10px;gap:6px}
+  .maptop{top:10px;left:34px;right:10px}.main-tools-row{gap:6px;flex-wrap:wrap}.maptop .rgt{gap:4px;overflow:visible;flex-wrap:wrap}.maptop .rgt .tbtn{padding:6px 7px;font-size:9.5px}.maptop .basesel{min-width:105px;max-width:120px}.count-tools-stack .pill{padding:6px 8px;font-size:10px}.leaflet-top.leaflet-left .leaflet-control-zoom{margin-top:118px;margin-left:34px}
   .pill{padding:7px 12px;font-size:12px}
   .tbtn{padding:7px 11px;font-size:12px}
   .legend{max-width:165px;bottom:84px;max-height:38vh;font-size:11px;padding:9px 11px}
   .menu{min-width:185px}
 }
+@media(min-width:861px) and (max-width:1180px){.main-tools-row{flex-wrap:wrap}.maptop .rgt{flex-wrap:wrap;flex-basis:calc(100% - 175px)}.leaflet-top.leaflet-left .leaflet-control-zoom{margin-top:112px}}
 
 /* ---- edit JKS modal + loading logo ---- */
 .editinfo{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;background:rgba(240,168,48,.13);border:1px solid var(--accent);color:var(--accent);border-radius:10px;padding:9px 11px;font-size:12px;font-weight:600;margin-bottom:10px}
@@ -892,8 +916,12 @@ select.search{appearance:none;cursor:pointer}
 .selbar .selproj .pj-out .pjn b{color:#ec9a9a}
 .selhint{font-size:11px;color:var(--muted);margin-top:7px;line-height:1.45}
 .selhint b{color:var(--ink)}
-.leaflet-container.boxsel-on{cursor:crosshair!important}
-.leaflet-container.lasso-on{cursor:crosshair!important}
+.leaflet-container.lasso-on,.leaflet-container.depot-pick{cursor:crosshair!important}
+.mapcountbar{display:flex;align-items:center;gap:4px;min-width:0;flex-wrap:wrap}.maphist{border:1px solid var(--line);background:rgba(14,21,19,.88);color:var(--ink);border-radius:999px;padding:7px 9px;font-size:11px;font-weight:700;cursor:pointer}.maphist:disabled{opacity:.38;cursor:default}.maphist:not(:disabled):hover{border-color:var(--accent);color:var(--accent)}
+#depotBtn.on{background:rgba(240,168,48,.2);border-color:var(--accent);color:var(--accent)}#dayBtn:disabled{opacity:.4;cursor:not-allowed}.depotpick,.dayapply{width:100%;margin-top:10px}.depoterr{color:#e05b5b;min-height:15px;margin-top:6px}.modalcopy{font-size:12px;color:var(--muted);line-height:1.55;margin:12px 0}.warnbtns{display:flex;gap:8px;align-items:stretch}.warnbtns>*{flex:1;padding:10px 8px}.daypanel{position:absolute;left:12px;top:60px;z-index:1350;width:390px;max-width:calc(100% - 24px);max-height:calc(100% - 78px);overflow:auto;background:rgba(20,32,28,.97);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 14px 44px rgba(0,0,0,.5);backdrop-filter:blur(9px)}.daypanel.hidden{display:none}.dayrows{max-height:225px;overflow:auto;margin:9px 0;border:1px solid var(--line);border-radius:10px}.dayrow{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line);font-size:11px}.dayrow:last-child{border-bottom:0}.dayrow b{color:var(--ink)}.dayrow span{color:var(--muted);text-align:right}.daydot{width:12px;height:12px;border-radius:50%;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.3)}.daypreview{margin:10px 0 0;padding:9px 10px;border-radius:9px;background:rgba(45,123,244,.12);color:#9fc3ff;font-size:11.5px;line-height:1.45}.dayactions{display:flex;gap:8px;margin-top:10px}.dayactions>*{flex:1}.dayapply{margin-top:0}.dayapply:disabled{opacity:.4;cursor:not-allowed}.depot-icon{font-size:27px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.65));line-height:30px;text-align:center}
+@media(max-width:860px){.maphist{padding:5px 6px;font-size:9.5px}.mapcountbar{gap:3px}.warnbtns{flex-direction:column}.daypanel{left:10px;top:55px;width:min(390px,calc(100% - 20px));max-height:calc(100% - 72px)}}
+.day-panel-open #legend{display:none!important}
+.viewer-mode #undoFloat,.viewer-mode #redoFloat,.viewer-mode #depotBtn,.viewer-mode #lassoBtn,.viewer-mode #clusterBtn,.viewer-mode #dayBtn,.viewer-mode #focusBtn,.viewer-mode #exportBtn,.viewer-mode #exportMenu,.viewer-mode #selBar,.viewer-mode #clusterFloat,.viewer-mode #depotModal,.viewer-mode #depotWarn,.viewer-mode #dayModal{display:none!important}
 .selbox{position:absolute;z-index:650;border:1.5px dashed #2d7bf4;background:rgba(45,123,244,.14);pointer-events:none}
 @media(max-width:860px){.selbar{left:10px;right:10px;bottom:80px;padding:10px}.selbar .selfld{min-width:104px}}
 .editbtn{display:inline-flex;align-items:center;gap:5px;background:#0e1513;color:#fff;border:none;cursor:pointer;padding:6px 10px;border-radius:8px;font-size:11.5px;font-weight:700;margin-top:7px;width:100%;justify-content:center}
@@ -904,6 +932,14 @@ select.search{appearance:none;cursor:pointer}
 .emodal{position:fixed;inset:0;z-index:3000;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.62);padding:20px}
 .emodal.open{display:flex}
 .ebox{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;width:100%;max-width:340px;box-shadow:0 24px 70px rgba(0,0,0,.55)}
+.invalidbox{max-width:820px;max-height:min(82vh,720px);display:flex;flex-direction:column;min-width:0}
+.invalidcopy{font-size:12px;color:var(--muted);line-height:1.5;margin:7px 0 12px}
+.invalidtablewrap{overflow:auto;border:1px solid var(--line);border-radius:10px;max-height:58vh}
+.invalidtable{width:100%;border-collapse:collapse;table-layout:fixed;font-size:11.5px}
+.invalidtable th{position:sticky;top:0;z-index:1;background:#16241f;color:var(--muted);text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.05em;padding:9px 10px;border-bottom:1px solid var(--line)}
+.invalidtable td{padding:8px 10px;border-bottom:1px solid var(--line);color:var(--ink);overflow-wrap:anywhere;vertical-align:top}
+.invalidtable tr:last-child td{border-bottom:0}.invalidtable th:nth-child(1){width:15%}.invalidtable th:nth-child(2){width:25%}.invalidtable th:nth-child(3){width:25%}.invalidtable th:nth-child(4),.invalidtable th:nth-child(5){width:17.5%}
+@media(max-width:860px){.invalidbox{max-height:88vh;padding:14px}.invalidtable{min-width:650px}.invalidtablewrap{max-height:65vh}}
 .ehead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:6px}
 .etitle{font-family:'Archivo',sans-serif;font-weight:800;font-size:16px;line-height:1.2}
 .ecode{font-size:11px;color:var(--muted);font-weight:600;margin-top:3px}
@@ -928,7 +964,6 @@ select.search{appearance:none;cursor:pointer}
 <body>
 <div class="app">
   <div class="backdrop" id="backdrop"></div>
-  <button class="mfab" id="mFilter">☰ Filter</button>
   <aside class="side" id="sidePanel">
     <div class="brand"><img class="logo" src="data:image/png;base64,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" alt="Nabati"><div class="bt"><h1 id="brandTitle">Peta JKS</h1><p>Sales Territory Mapping</p></div><button class="mclose" id="mClose" aria-label="Tutup">✕</button></div>
     <div class="scroll">
@@ -936,16 +971,11 @@ select.search{appearance:none;cursor:pointer}
         <div class="lbl">1 · Upload File</div>
         <div class="drop" id="dropTarget"><div class="ic">📋</div><div class="t">Form JKS atau Template (.xlsm / .xlsx)</div>
           <div class="s" id="targetName">Klik / drop Form JKS atau template di sini</div><input type="file" id="fileTarget" accept=".xlsm,.xlsx,.xls" hidden></div>
-        <div class="drop" id="dropCoord"><div class="ic">📍</div><div class="t">File KOORDINAT (.xlsx / .csv) — opsional</div>
-          <div class="s" id="coordName">Klik / drop database koordinat (skip kalau template sudah ada LAT/LONG)</div><input type="file" id="fileCoord" accept=".xlsx,.xls,.csv" hidden></div>
         <button class="tplbtn" id="tplBtn">⬇ Belum punya Form JKS? Unduh template (isi sendiri + bisa langsung mapping)</button>
       </div>
       <div id="panel" class="hidden">
         <button class="ghostbtn" id="changeBtn">📂 Muat file depo lain (mulai ulang)</button>
-        <div class="card"><div class="lbl">Ringkasan (terlihat / total)</div>
-          <div class="stats"><div class="stat"><b id="stVis">0</b><span>Terlihat</span></div>
-            <div class="stat g"><b id="stMap">0</b><span>Termapping</span></div>
-            <div class="stat w"><b id="stUn">0</b><span>Belum</span></div></div></div>
+        <div class="card"><div class="lbl">Cari outlet</div><input class="search" id="search" placeholder="Cari nama / kode outlet…"></div>
         <div class="card"><div class="lbl">💰 Omset &amp; EC (mengikuti filter)</div>
           <div class="stats" style="grid-template-columns:1fr 1fr">
             <div class="stat"><b id="kpiOmset">Rp0</b><span>Total Omset</span></div>
@@ -953,18 +983,13 @@ select.search{appearance:none;cursor:pointer}
           <div id="kpiOmsetPerEC" style="margin-top:8px;font-size:11px;color:var(--muted);text-align:center">Omset / EC: —</div></div>
         <div class="card"><div class="lbl">🎨 Warnai pin berdasarkan</div>
           <div class="seg" id="seg">
-            <button data-m="auto" class="on">Auto</button>
-            <button data-m="sales">Sales</button>
+            <button data-m="sales" class="on">Sales</button>
             <button data-m="rute">Rute</button>
             <button data-m="cycle">Cycle</button>
             <button data-m="rc">Rute+Cycle</button>
           </div>
           <div class="hint" id="colorHint"></div>
         </div>
-        <div class="card"><div class="lbl">Cari outlet</div><input class="search" id="search" placeholder="Nama / kode outlet…"></div>
-        <div class="card" id="card-kat"><div class="lbl">Kategori Sales <span class="tag"></span></div>
-          <div class="slist" id="katList"></div>
-          <div class="rowbtns"><button class="chip" data-dim="kat" data-act="all">Semua</button><button class="chip" data-dim="kat" data-act="none">Kosongkan</button></div></div>
         <div class="card" id="card-sales"><div class="lbl">Sales <span class="tag"></span></div>
           <div class="slist" id="salesList"></div>
           <div class="rowbtns"><button class="chip" data-dim="sales" data-act="all">Semua</button><button class="chip" data-dim="sales" data-act="none">Kosongkan</button></div></div>
@@ -976,33 +1001,28 @@ select.search{appearance:none;cursor:pointer}
           <div class="rowbtns"><button class="chip" data-dim="cycle" data-act="all">Semua</button><button class="chip" data-dim="cycle" data-act="none">Kosongkan</button></div></div>
         <div class="card"><div class="lbl">Kecamatan</div>
           <select class="search" id="kecSel"><option value="">Semua kecamatan</option></select></div>
-        <div class="card" id="unmapCard">
-          <div class="expand" id="unmapHead"><span class="lbl" style="margin:0">⚠ Belum termapping (<span id="unCount">0</span>)</span><span class="ar">▶</span></div>
-          <div class="unmapwrap" id="unmapWrap"></div>
-          <button class="dlcsv" id="dlUnmap">⬇ Unduh daftar belum termapping (CSV)</button></div>
-        <div class="editinfo hidden" id="editInfo"><span>✏️ <b id="editCount">0</b> outlet dipindahkan<span id="delInfo" class="hidden"> · 🗑 <b id="delCount">0</b> titik dihapus</span></span><button id="undoLast" class="hidden">↶ undo</button><button id="redoLast" class="hidden">↷ redo</button><button id="undoAll">↩ Kembalikan semua</button></div>
-        <button class="resetbtn" id="resetBtn">↺ Reset semua filter</button>
       </div>
     </div>
   </aside>
+  <button class="sidebar-rail" id="sidebarRail" aria-label="Tutup sidebar" aria-expanded="true"><span id="sidebarRailArrow">◀</span></button>
   <div class="mapwrap">
     <div id="map"></div>
-    <button id="undoFloat" class="undofloat hidden">↶ undo</button>
-    <button id="redoFloat" class="undofloat redofloat hidden">↷ redo</button>
     <div class="maptop">
-      <div class="pill">📍 <b id="pillCount">0</b> outlet di peta</div>
+      <div class="main-tools-row">
+      <div class="count-tools-stack"><div class="mapcountbar"><div class="pill">📍 <b id="pillCount">0</b> outlet di peta</div><button class="pill invalidpill hidden" id="invalidPointPill" type="button">⚠️ <b id="invalidPointCount">0</b> titik tidak valid</button></div><div class="maphistory-row"><button id="undoFloat" class="maphist" title="Undo (Ctrl+Z)" disabled>↶ Undo</button><button id="redoFloat" class="maphist" title="Redo (Ctrl+Y)" disabled>↷ Redo</button></div></div>
       <div class="rgt">
         <select class="basesel" id="baseSel" title="Ganti layer peta">
           <option value="osm">🗺️ OpenStreetMap</option>
           <option value="gmap">🗺️ Google Maps</option>
           <option value="gsat">🛰️ Google Satelit</option>
-          <option value="ghyb">🛰️ Google Hybrid</option>
+          <option value="ghyb" selected>🛰️ Google Hybrid</option>
           <option value="esri">🛰️ Esri Satelit</option>
           <option value="topo">⛰️ OpenTopoMap</option>
         </select>
-        <button class="tbtn" id="selModeBtn">⬚ Pilih</button>
-        <button class="tbtn" id="lassoBtn" title="Desktop: tahan KLIK KANAN lalu gambar. HP: aktifkan tombol ini lalu gambar pakai jari.">✏️ Lasso</button>
+        <button class="tbtn" id="depotBtn">🏠 Depo</button>
+        <button class="tbtn" id="lassoBtn" title="Aktifkan Lasso, lalu gambar dengan klik kiri + drag. Klik kanan pada peta juga dapat menyalakan/mematikan Lasso.">✏️ Lasso</button>
         <button class="tbtn" id="clusterBtn">🧭 Cluster</button>
+        <button class="tbtn" id="dayBtn" disabled>🔄 Atur Hari</button>
         <button class="tbtn" id="focusBtn">🎯 Fokus</button>
         <button class="tbtn" id="exportBtn">⬇ Export ▾</button>
         <div class="menu" id="exportMenu">
@@ -1011,25 +1031,35 @@ select.search{appearance:none;cursor:pointer}
           <button id="expHtml">🌐 Export Peta HTML</button>
         </div>
       </div>
+      </div>
     </div>
     <div class="clusterfloat hidden" id="clusterFloat">
       <div class="cfhead"><span>🧭 Routing &amp; Cluster</span><button id="cfClose" title="Tutup">✕</button></div>
       <div class="cfbody">
+        <div class="rcmethods" id="rcMethods">
+          <button class="rcmethod on" data-mode="blocking"><b>BLOCKING</b><span>Sales → Rute → Cycle</span><small>Territory utama per Salesman, lalu dibagi menjadi Rute dan Cycle.</small></button>
+          <button class="rcmethod" data-mode="traffic"><b>TRAFFIC — SISTEM SERBU</b><span>Rute → Sales → Cycle</span><small>Enam wilayah harian, lalu setiap wilayah dibagi kembali per Salesman.</small></button>
+        </div>
+        <div class="rcdesc" id="rcMethodDesc">Setiap Salesman memiliki territory utama sendiri, lalu territory dibagi menjadi Rute dan Cycle.</div>
         <div class="rcgrid">
-          <label>Jumlah Sales (territory)</label><input type="number" id="rcSales" min="1" max="50" value="3">
-          <label>Rute / hari per Sales</label><input type="number" id="rcRute" min="1" max="30" value="6">
+          <label>Jumlah Salesman</label><input type="number" id="rcSales" min="1" max="50" value="1">
+          <label id="rcRuteLabel">Rute / hari per Sales</label><input type="number" id="rcRute" min="1" max="30" value="6">
           <label>Cycle per Rute</label><input type="number" id="rcCycle" min="1" max="12" value="2">
-          <label>Toleransi kerataan (%)</label><input type="number" id="rcTolInput" min="0" max="200" step="1" value="10">
+          <label>Toleransi kerataan (%)</label><input type="number" id="rcTolInput" min="0" max="200" step="1" value="0">
         </div>
         <label class="rccheck"><input type="checkbox" id="rcGapChk" checked> Pertimbangkan barrier (gap-aware, hindari motong sungai/celah)</label>
-        <button class="rcrun" id="rcRunBtn">⚙️ Jalankan Clustering</button>
+        <button class="rcrun" id="rcRunBtn">⚙️ Jalankan Cluster Blocking</button>
         <button class="rcundo" id="rcUndoBtn">↩ Kembalikan ke data asli</button>
         <button class="rcrun" id="rcRouteBtn" style="margin-top:9px;background:#162420;color:var(--ink);border:1px solid var(--line)">🛣️ Tampilkan rute kunjungan</button>
         <button class="rcundo" id="rcRoadBtn" style="display:none">🌐 Ikutkan jalan raya (OSRM, online)</button>
-        <div class="rcinfo" id="rcInfo">Bagi toko yang tampil di peta jadi Sales → Rute → Cycle (KMeans, blocking-first + gap-aware). Hasilnya menimpa kolom sales/rute/cycle &amp; bisa di-export.</div>
+        <div class="rcinfo" id="rcInfo">Bagi toko yang tampil menjadi Sales → Rute → Cycle. Hasil dapat dikembalikan dan di-export.</div>
       </div>
     </div>
     <div class="legend hidden" id="legend"></div>
+    <div class="emodal" id="invalidPointModal"><div class="ebox invalidbox"><div class="ehead"><div><div class="etitle">⚠️ Titik Tidak Valid</div><div class="ecode" id="invalidPointSummary">0 outlet</div></div><button class="eclose" id="invalidPointClose">✕</button></div><p class="invalidcopy">Outlet berikut tidak ditampilkan di peta karena Latitude / Longitude pada file sumber tidak dapat digunakan.</p><div class="invalidtablewrap"><table class="invalidtable"><thead><tr><th>Kode Outlet</th><th>Nama Toko</th><th>Salesman As Is</th><th>Latitude</th><th>Longitude</th></tr></thead><tbody id="invalidPointRows"></tbody></table></div></div></div>
+    <div class="emodal" id="depotModal"><div class="ebox"><div class="ehead"><div><div class="etitle">🏠 Lokasi Depo</div><div class="ecode" id="depotStatus">Belum ditentukan (opsional)</div></div><button class="eclose" id="depotClose">✕</button></div><button class="esave depotpick" id="depotPick">📍 Pilih di Peta</button><label class="elbl">Latitude</label><input class="esel" id="depotLat" inputmode="decimal" placeholder="-6.200000"><label class="elbl">Longitude</label><input class="esel" id="depotLng" inputmode="decimal" placeholder="106.816666"><div class="ecode depoterr" id="depotErr"></div><div class="ebtns"><button class="erev" id="depotDelete">Hapus Lokasi</button><button class="esave" id="depotSave">Simpan Lokasi</button></div></div></div>
+    <div class="emodal" id="depotWarn"><div class="ebox"><div class="etitle">🏠 Lokasi Depo Belum Ditentukan</div><p class="modalcopy">Cluster tetap dapat dijalankan tanpa lokasi Depo. Namun sistem tidak dapat memprioritaskan R05 (Jumat) dan R06 (Sabtu) agar berada dekat dengan Depo.</p><div class="warnbtns"><button class="erev" id="warnSetDepot">🏠 Atur Lokasi Depo</button><button class="esave" id="warnContinue">Tetap Jalankan Tanpa Depo</button></div></div></div>
+    <div class="daypanel hidden" id="dayModal"><div class="ehead"><div><div class="etitle">🔄 Atur / Tukar Hari</div><div class="ecode">Global untuk seluruh dataset · tanpa recluster</div></div><button class="eclose" id="dayClose">✕</button></div><div id="dayRows" class="dayrows"></div><label class="elbl">Tukar Hari A</label><select class="esel" id="dayA"></select><label class="elbl">Dengan Hari B</label><select class="esel" id="dayB"></select><div class="daypreview" id="dayPreviewText">Pilih dua hari untuk preview.</div><div class="dayactions"><button class="erev" id="dayCancel">Batal</button><button class="esave dayapply" id="daySwap">Tukar Hari</button></div></div>
     <div class="selbar" id="selBar">
       <div class="selcount">✓ <b id="selCount">0</b> outlet dipilih</div>
       <div class="selproj" id="selProj"></div>
@@ -1047,7 +1077,7 @@ select.search{appearance:none;cursor:pointer}
     </div>
     <div class="load" id="loader"><img class="loadlogo" id="loadLogo" src="data:image/png;base64,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" alt="Nabati"><div class="spin" id="loadSpin" style="display:none"></div><p id="loadMsg">Upload <b>Form JKS</b> &amp; file <b>KOORDINAT</b> untuk mulai…</p></div>
     <div class="emodal" id="editModal"><div class="ebox"><div class="ehead"><div><div class="etitle" id="eTitle">Outlet</div><div class="ecode" id="eCode"></div></div><button class="eclose" id="eCancel">✕</button></div><label class="elbl">Sales</label><select class="esel" id="eSales"></select><label class="elbl">Rute / Hari</label><select class="esel" id="eRute"></select><label class="elbl">Cycle</label><select class="esel" id="eCycle"></select><button class="edelpoint" id="eDelPoint">🗑 Hapus titik (jadikan belum termapping)</button><div class="ebtns"><button class="erev" id="eRevert">↩ Asli</button><button class="esave" id="eSave">✓ Simpan</button></div></div></div>
-</div>
+  </div>
 </div>
 <script>
 const PALETTE=['#f0a830','#4cc4d6','#7ed957','#8e6bd6','#ff7a59','#5b8def','#e05b5b','#b388ff','#22b8a0','#c97b30','#9acd32','#ff9f40','#6c8cff','#d4a373'];
@@ -1058,16 +1088,21 @@ const RC_PAL=['#e6194B','#3cb44b','#4363d8','#f58231','#911eb4','#42d4f4','#0000
 const DIMS={sales:{label:'Sales',listId:'salesList',cardId:'card-sales',pal:PALETTE},
   rute:{label:'Rute / Hari',listId:'ruteList',cardId:'card-rute',pal:RUTE_PAL},
   cycle:{label:'Cycle',listId:'cycleList',cardId:'card-cycle',pal:CYCLE_PAL},
-  rc:{label:'Rute + Cycle',listId:null,cardId:null,pal:RC_PAL},
-  kat:{label:'Kategori Sales',listId:'katList',cardId:'card-kat',pal:PALETTE}};
-const FDIMS=['kat','sales','rute','cycle'];      // dimensi yang bisa difilter
-const CDIMS=['sales','rute','cycle','rc'];       // dimensi yang bisa diwarnai
-let TARGET=[],COORD={},OUTLETS=[],DEPO='';
+  rc:{label:'Rute + Cycle',listId:null,cardId:null,pal:RC_PAL}};
+const FDIMS=['sales','rute','cycle'];            // dimensi filter user
+const CDIMS=['sales','rute','cycle','rc'];       // dimensi warna pin
+let TARGET=[],COORD={},OUTLETS=[],DEPO='',INVALID_SOURCE_POINTS=[];
 let TGT_HEADER=[],TGT_COLS={},SALES_CODE={};   // utk export format TARGET + edit JKS
-let colorMaps={sales:{},rute:{},cycle:{},kat:{},rc:{}},vals={sales:[],rute:[],cycle:[],kat:[],rc:[]};
-let colorMode='auto',fitted=false;
-let rcGap=true;   // pertimbangkan barrier (gap-aware) saat clustering
-const F={sales:new Set(),rute:new Set(),cycle:new Set(),kat:new Set(),kec:'',search:''};
+let colorMaps={sales:{},rute:{},cycle:{},rc:{}},vals={sales:[],rute:[],cycle:[],rc:[]};
+let colorMode='sales',fitted=false;
+let rcGap=true,clusterMode='blocking',rcSalesManual=false;
+let activeSalesRoster=[];
+let depotCoord=null,depotMarker=null,depotPickMode=false,pendingCluster=false;
+let viewerMode=false,dayPreviewState=null;
+const ROUTE_DAYS={R01:'Senin',R02:'Selasa',R03:'Rabu',R04:'Kamis',R05:'Jumat',R06:'Sabtu'};
+function routeDay(v){return ROUTE_DAYS[String(v||'').toUpperCase()]||'';}
+function routeFriendly(v){const d=routeDay(v);return d?(v+' · '+d):v;}
+const F={sales:new Set(),rute:new Set(),cycle:new Set(),kec:'',search:''};
 let map,fg,routeLayer,PRISTINE_HTML='';
 // ===== FIX BLANK JKS: nilai kosong (Sales/Rute/Cycle/Kategori) adalah kelompok yang SAH, bukan alasan
 // utk menyembunyikan outlet. Internal value tetap sentinel '-' (dipakai persis spt sebelumnya di seluruh
@@ -1077,7 +1112,7 @@ const BLANK_VAL='-';
 const BLANK_COLOR='#8A9490';
 function isBlankDimension(v){ return v==null || String(v).trim()===''||String(v).trim()===BLANK_VAL; }
 function displayDimension(dim,value){
-  if(!isBlankDimension(value))return value;
+  if(!isBlankDimension(value)){if(dim==='rute')return routeFriendly(value);return value;}
   if(dim==='sales')return '⚠ Belum Ada Sales';
   if(dim==='rute')return '⚠ Belum Ada Rute';
   if(dim==='cycle')return '⚠ Belum Ada Cycle';
@@ -1088,9 +1123,10 @@ function displayDimension(dim,value){
 // Kelompok kosong (BLANK_VAL) selalu ditaruh di akhir daftar & selalu dapat BLANK_COLOR (bukan dari palet).
 function rebuildVals(keys,sortFn){
   keys.forEach(k=>{
-    const nonBlank=[...new Set(OUTLETS.map(o=>o[k]))].filter(v=>v&&v!==BLANK_VAL);
+    let nonBlank=[...new Set(OUTLETS.map(o=>o[k]))].filter(v=>v&&v!==BLANK_VAL);
+    if(k==='sales'&&activeSalesRoster.length){const mappedSales=new Set(OUTLETS.filter(o=>o.coord).map(o=>o.sales));nonBlank=activeSalesRoster.filter(v=>mappedSales.has(v));}
     nonBlank.sort(sortFn);
-    const hasBlank=OUTLETS.some(o=>isBlankDimension(o[k]));
+    const hasBlank=OUTLETS.some(o=>o.coord&&isBlankDimension(o[k]));
     vals[k]=hasBlank?nonBlank.concat([BLANK_VAL]):nonBlank;
     colorMaps[k]={};
     nonBlank.forEach((v,i)=>colorMaps[k][v]=DIMS[k].pal[i%DIMS[k].pal.length]);
@@ -1109,6 +1145,19 @@ const $=id=>document.getElementById(id);
 function findCol(h,names){const H=h.map(norm);for(const n of names){const i=H.indexOf(n);if(i>=0)return i;}for(const n of names){const i=H.findIndex(x=>x.includes(n));if(i>=0)return i;}return -1;}
 function findHeaderRow(a,k){for(let r=0;r<Math.min(a.length,15);r++){if(findCol(a[r]||[],k)>=0)return r;}return 0;}
 function parseNum(v){if(v==null||v==='')return null;const n=parseFloat(String(v).replace(',','.').trim());return isFinite(n)?n:null;}
+function parseSourceCoordinate(v){if(v==null||String(v).trim()==='')return null;const n=Number(String(v).trim().replace(',','.'));return Number.isFinite(n)?n:null;}
+function sourceCoordinateValid(rawLat,rawLng){const lat=parseSourceCoordinate(rawLat),lng=parseSourceCoordinate(rawLng);return lat!=null&&lng!=null&&lat>=-90&&lat<=90&&lng>=-180&&lng<=180;}
+function rawCoordinateText(v){if(v==null||String(v).trim()==='')return '—';return String(v);}
+function rebuildInvalidSourcePoints(){
+  INVALID_SOURCE_POINTS=OUTLETS.filter(o=>o.sourceCoordValid===false).map(o=>({code:o.code,name:o.name,sales:o.sls0,rawLat:o.rawLat,rawLng:o.rawLng}));
+  const pill=$('invalidPointPill'),count=$('invalidPointCount');if(count)count.textContent=INVALID_SOURCE_POINTS.length;if(pill)pill.classList.toggle('hidden',INVALID_SOURCE_POINTS.length===0);
+}
+function openInvalidPointModal(){
+  if(!INVALID_SOURCE_POINTS.length)return;const rows=$('invalidPointRows');
+  rows.innerHTML=INVALID_SOURCE_POINTS.map(o=>'<tr><td>'+legEsc(o.code)+'</td><td>'+legEsc(o.name)+'</td><td>'+legEsc(o.sales)+'</td><td>'+legEsc(rawCoordinateText(o.rawLat))+'</td><td>'+legEsc(rawCoordinateText(o.rawLng))+'</td></tr>').join('');
+  $('invalidPointSummary').textContent=INVALID_SOURCE_POINTS.length+' outlet';$('invalidPointModal').classList.add('open');
+}
+function closeInvalidPointModal(){$('invalidPointModal').classList.remove('open');}
 function readFile(f){return new Promise((res,rej)=>{const fr=new FileReader();fr.onload=e=>res(new Uint8Array(e.target.result));fr.onerror=rej;fr.readAsArrayBuffer(f);});}
 function katOf(s){s=String(s==null?'':s).trim();const i=s.indexOf('-');return((i>0?s.slice(0,i):s).trim()||'-').toUpperCase();}
 // ===== OMSET & EC: parsing angka aman + agregasi + format =====
@@ -1162,6 +1211,8 @@ function formatCompactRupiah(n){
 
 async function loadTarget(file){
   setLoad(true,'Membaca file… (kalau file besar, mohon tunggu)',true);
+  // File utama adalah authority tunggal untuk koordinat. Bersihkan state depo sebelumnya.
+  COORD={};
   let wb;
   try{ wb=XLSX.read(await readFile(file),{type:'array',cellDates:false,cellStyles:false,cellNF:false,cellFormula:false}); }
   catch(e){ return fail('dropTarget','targetName','File tidak bisa dibaca. Pastikan ini Form JKS / template Excel (.xlsm / .xlsx).'); }
@@ -1183,44 +1234,23 @@ async function loadTarget(file){
     lat:findCol(H,['LATITUDE','LAT','LINTANG']),lng:findCol(H,['LONGITUDE','LONG','LNG','LON','BUJUR']),
     omset:findCol(H,['OMSET','OMZET','REVENUE','SALESVALUE']),ec:findCol(H,['EC','EFFECTIVECALL'])};
   if(c.code<0) return fail('dropTarget','targetName','Kolom "KD OUTLET" tidak ada. Bukan Form JKS / template yang benar.');
-  TARGET=[];DEPO='';TGT_HEADER=H.map(x=>x==null?'':x);
-  TGT_COLS={code:c.code,name:c.name,addr:c.addr,kec:c.kec,type:c.type,rute:c.rute,cyc:c.cyc,sls:c.sls,kdsls:c.kdsls,omset:c.omset,ec:c.ec};
+  TARGET=[];DEPO='';activeSalesRoster=[];INVALID_SOURCE_POINTS=[];TGT_HEADER=H.map(x=>x==null?'':x);
+  TGT_COLS={code:c.code,name:c.name,addr:c.addr,kec:c.kec,type:c.type,rute:c.rute,cyc:c.cyc,sls:c.sls,kdsls:c.kdsls,lat:c.lat,lng:c.lng,omset:c.omset,ec:c.ec};
   SALES_CODE={};const seen=new Set(),areaCnt={};let embCoord=0;const embMap={};
   for(let r=hr+1;r<a.length;r++){const row=a[r]||[],code=row[c.code];
     if(code==null||String(code).trim()==='')continue;const key=norm(code);if(seen.has(key))continue;seen.add(key);if(c.area>=0){const ar=String(row[c.area]||'').trim();if(ar)areaCnt[ar]=(areaCnt[ar]||0)+1;}
     if(c.sls>=0&&c.kdsls>=0){const _nm=String(row[c.sls]||'').trim(),_kd=row[c.kdsls];if(_nm&&_nm!=='-'&&SALES_CODE[_nm]==null&&_kd!=null&&String(_kd).trim()!=='')SALES_CODE[_nm]=_kd;}
-    if(c.lat>=0&&c.lng>=0){const la=parseNum(row[c.lat]),ln=parseNum(row[c.lng]);
-      if(la!=null&&ln!=null&&la>=-90&&la<=90&&ln>=-180&&ln<=180){embMap[key]={lat:la,lng:ln};embCoord++;}}
+    const rawLat=c.lat>=0?row[c.lat]:null,rawLng=c.lng>=0?row[c.lng]:null,sourceCoordValid=sourceCoordinateValid(rawLat,rawLng);
+    if(sourceCoordValid){const la=parseSourceCoordinate(rawLat),ln=parseSourceCoordinate(rawLng);embMap[key]={lat:la,lng:ln};embCoord++;}
     TARGET.push({code:String(code).trim(),key,name:row[c.name]||'-',addr:row[c.addr]||'-',kec:String(row[c.kec]||'-').trim(),
       type:row[c.type]||'-',rute:String(row[c.rute]||'-').trim(),cycle:String(row[c.cyc]||'-').trim(),sales:String(row[c.sls]||'-').trim(),kat:katOf(row[c.sls]),
       omset:c.omset>=0?safeMoneyNum(row[c.omset]):0, ec:c.ec>=0?safeECNum(row[c.ec]):0,
-      row:row.slice(),edited:false,sls0:String(row[c.sls]||'-').trim(),rute0:String(row[c.rute]||'-').trim(),cycle0:String(row[c.cyc]||'-').trim()});}
+      row:row.slice(),edited:false,sls0:String(row[c.sls]||'-').trim(),rute0:String(row[c.rute]||'-').trim(),cycle0:String(row[c.cyc]||'-').trim(),
+      rawLat,rawLng,sourceCoordValid});}
   if(!TARGET.length) return fail('dropTarget','targetName','Tidak ada data outlet terbaca di sheet TARGET.');
   DEPO=Object.keys(areaCnt).sort((x,y)=>areaCnt[y]-areaCnt[x])[0]||'';
-  if(embCoord>0){COORD=Object.assign({},COORD,embMap);   /* koordinat dari file ini sendiri */
-    mark($('dropCoord'),$('coordName'),'Koordinat dari file template · '+embCoord+' titik');}
-  mark($('dropTarget'),$('targetName'),file.name+' · '+TARGET.length+' outlet'+(embCoord?(' (+'+embCoord+' koordinat)'):''));return true;
-}
-async function loadCoord(file){
-  setLoad(true,'Membaca file koordinat…',true);
-  let wb;
-  try{ wb=XLSX.read(await readFile(file),{type:'array'}); }
-  catch(e){ return fail('dropCoord','coordName','File tidak bisa dibaca. Pastikan file koordinat Excel/CSV yang benar.'); }
-  const ws=wb.Sheets[wb.SheetNames.find(n=>norm(n).includes('KOORD'))||wb.SheetNames[0]];
-  const a=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:null});
-  const hr=findHeaderRow(a,['KDOUTLET','KODEOUTLET','LATITUDE']),H=a[hr]||[];
-  const ci=findCol(H,['KDOUTLET','KODEOUTLET','KODE','CODE','KD']),li=findCol(H,['LATITUDE','LAT','LINTANG']),gi=findCol(H,['LONGITUDE','LONG','LNG','LON','BUJUR']);
-  if((li<0||gi<0)&&wb.SheetNames.some(n=>norm(n).includes('TARGET')))
-    return fail('dropCoord','coordName','Ini sepertinya Form JKS, bukan file koordinat. Upload-nya di kotak \"Form JKS\" ya.');
-  if(ci<0||li<0||gi<0) return fail('dropCoord','coordName','Format salah. File koordinat wajib punya kolom KD_OUTLET, LATITUDE, LONGITUDE.');
-  const nc={};let n=0,bad=0;
-  for(let r=hr+1;r<a.length;r++){const row=a[r]||[],code=row[ci];if(code==null||String(code).trim()==='')continue;
-    const lat=parseNum(row[li]),lng=parseNum(row[gi]);
-    if(lat==null||lng==null||lat<-90||lat>90||lng<-180||lng>180){bad++;continue;}
-    nc[norm(code)]={lat,lng};n++;}
-  if(n===0) return fail('dropCoord','coordName','Tidak ada koordinat valid terbaca. Cek isi & format kolom LATITUDE/LONGITUDE.');
-  COORD=nc;
-  mark($('dropCoord'),$('coordName'),file.name+' · '+n+' koordinat'+(bad?(' ('+bad+' baris dilewati)'):''));return true;
+  COORD=embMap;
+  mark($('dropTarget'),$('targetName'),file.name+' · '+TARGET.length+' outlet'+(embCoord?(' · '+embCoord+' termapping'):(' · belum ada koordinat valid')));return true;
 }
 function mark(d,el,t){d.classList.remove('err');d.classList.add('ok');el.textContent=t;}
 function fail(dropId,labelId,msg){alert('⚠ '+msg);const d=$(dropId);d.classList.remove('ok');d.classList.add('err');$(labelId).textContent='⚠ '+msg;setLoad(true,'⚠ '+msg);return false;}
@@ -1264,12 +1294,15 @@ function buildRC(){
   colorMaps.rc={};vals.rc.forEach((v,i)=>colorMaps.rc[v]=RC_PAL[i%RC_PAL.length]);
 }
 function build(){
+  activeSalesRoster=[];
   OUTLETS=TARGET.map(t=>({...t,coord:COORD[t.key]||null}));
+  rebuildInvalidSourcePoints();
   OUTLETS.forEach(o=>{o.rc=(o.rute&&o.rute!=='-'?o.rute:'?')+' · '+(o.cycle&&o.cycle!=='-'?o.cycle:'?');});
   rebuildVals(FDIMS);
   buildRC();
   F.kec='';F.search='';
   FDIMS.forEach(buildDim);buildKec();fillBulkSelectors();SEL.clear();
+  rcSalesManual=false;setAutoSalesCount(OUTLETS.filter(o=>o.coord),true);updateClusterMethodUI();
   $('panel').classList.remove('hidden');$('uploadCard').classList.add('hidden');setTitle(DEPO);
   initMap();fitted=false;render();
   if(isMobile())openPanel(false);
@@ -1277,7 +1310,7 @@ function build(){
 function buildDim(dim){
   const el=$(DIMS[dim].listId);el.innerHTML='';
   vals[dim].forEach(v=>{
-    const cnt=OUTLETS.filter(o=>o[dim]===v).length;
+    const cnt=OUTLETS.filter(o=>o.coord&&o[dim]===v).length;
     const d=document.createElement('div');d.className='srow';d.dataset.dim=dim;d.dataset.v=v;
     d.innerHTML='<span class="sw"></span><span class="nm">'+displayDimension(dim,v)+'</span><span class="ct">'+cnt+'</span>';
     d.querySelector('.sw').style.background='var(--gray)';
@@ -1286,23 +1319,23 @@ function buildDim(dim){
 }
 function setTitle(d){d=(d||'').toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());const t=d?('Peta JKS '+d):'Peta JKS';$('brandTitle').textContent=t;document.title=t;}
 function resetApp(){
-  TARGET=[];OUTLETS=[];DEPO='';  /* koordinat (COORD) sengaja DIPERTAHANKAN utk depo berikutnya */
+  TARGET=[];COORD={};OUTLETS=[];DEPO='';INVALID_SOURCE_POINTS=[];activeSalesRoster=[];rcSalesManual=false;clusterMode='blocking';clearDepot();
   if(fg)fg.clearLayers();
-  SEL.clear();if(selMode)setSelMode(false);if(lassoMode)setLassoMode(false);updateSelBar();
+  SEL.clear();if(lassoMode)setLassoMode(false);updateSelBar();
   $('fileTarget').value='';
   $('dropTarget').classList.remove('ok','err');$('targetName').textContent='Klik / drop Form JKS atau template di sini';
   $('panel').classList.add('hidden');$('uploadCard').classList.remove('hidden');$('legend').classList.add('hidden');
-  setTitle('');
-  const nc=Object.keys(COORD).length;
-  setLoad(true,'Upload Form JKS / template depo lain untuk mulai.'+(nc?(' File koordinat lama ('+nc+' titik) tetap dipakai.'):''));
+  $('invalidPointPill').classList.add('hidden');closeInvalidPointModal();
+  setTitle('');updateClusterMethodUI();
+  setLoad(true,'Upload Form JKS / template depo lain untuk mulai.');
 }
 function buildKec(){
   const ks=[...new Set(OUTLETS.map(o=>o.kec))].filter(x=>x&&x!=='-').sort();
   const sel=$('kecSel');sel.innerHTML='<option value="">Semua kecamatan</option>';
   ks.forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;sel.appendChild(o);});
 }
-// effective color dimension (Auto: 1 sales selected -> rute, else sales)
-function eff(){ if(colorMode!=='auto')return colorMode; return (F.sales.size===1)?'rute':'sales'; }
+// Warna selalu mengikuti pilihan manual user; embedded mode lama "auto" dinormalisasi ke Sales.
+function eff(){ return CDIMS.includes(colorMode)?colorMode:'sales'; }
 function updateColorVisuals(){
   const e=eff();
   document.querySelectorAll('#seg button').forEach(b=>b.classList.toggle('on',b.dataset.m===colorMode));
@@ -1311,17 +1344,12 @@ function updateColorVisuals(){
     $(DIMS[dim].cardId).querySelector('.tag').textContent=(dim===e)?'● warna aktif':'';
     document.querySelectorAll('.srow[data-dim="'+dim+'"]').forEach(r=>{
       r.querySelector('.sw').style.background=(dim===e)?(colorMaps[dim][r.dataset.v]||'#888'):'var(--gray)';});});
-  let h='';
-  if(colorMode==='auto') h = (F.sales.size===1)
-    ? '⚡ Mode Auto · 1 sales dipilih → pin diwarnai per <b style="color:var(--ink)">Rute</b>'
-    : '⚡ Mode Auto · warna per <b style="color:var(--ink)">Sales</b>. Pilih 1 sales → otomatis per Rute.';
-  else h = 'Warna manual per <b style="color:var(--ink)">'+DIMS[e].label+'</b>';
-  $('colorHint').innerHTML=h;
+  $('colorHint').innerHTML='Warna manual per <b style="color:var(--ink)">'+DIMS[e].label+'</b>';
 }
 function visible(){
   const q=F.search.trim().toLowerCase();
   return OUTLETS.filter(o=>{
-    if(!F.kat.has(o.kat))return false;if(!F.sales.has(o.sales))return false;if(!F.rute.has(o.rute))return false;if(!F.cycle.has(o.cycle))return false;
+    if(!F.sales.has(o.sales))return false;if(!F.rute.has(o.rute))return false;if(!F.cycle.has(o.cycle))return false;
     if(F.kec&&o.kec!==F.kec)return false;
     if(q&&!(String(o.name).toLowerCase().includes(q)||String(o.code).toLowerCase().includes(q)))return false;
     return true;});
@@ -1347,144 +1375,121 @@ function setBasemap(key){
 function initMap(){
   if(map)return;
   map=L.map('map',{zoomControl:true,preferCanvas:true,boxZoom:false}).setView([-6.87,109.13],12);
-  setBasemap('osm');
+  setBasemap('ghyb');
   fg=L.featureGroup().addTo(map);
   routeLayer=L.layerGroup().addTo(map);
   initBoxSelect();
   initLasso();
+  map.on('click',e=>{if(!depotPickMode)return;depotPickMode=false;map.getContainer().classList.remove('depot-pick');setDepot({lat:e.latlng.lat,lng:e.latlng.lng});});
   const sel=$('baseSel'); if(sel)sel.onchange=e=>setBasemap(e.target.value);
 }
-/* ===== MULTI-PICK: state + box-select via shift-drag ===== */
-const SEL=new Set();              // kode outlet yang dipilih
-let selMode=false;                // tombol "Pilih" aktif → klik biasa juga menambah pilihan
-let MARKERS={};                   // code -> circleMarker (render ini)
-let MARKERS_BY_GROUP={};          // dim -> Map(nilai grup -> Set kode outlet) — index utk update marker parsial saat klik legend
-function selActive(){return selMode;}
-function toggleSel(code){ if(SEL.has(code))SEL.delete(code); else SEL.add(code); refreshSelVisuals(); updateSelBar(); }
-function clearSel(){ SEL.clear(); refreshSelVisuals(); updateSelBar(); }
+function validDepot(c){return !!c&&Number.isFinite(+c.lat)&&Number.isFinite(+c.lng)&&+c.lat>=-90&&+c.lat<=90&&+c.lng>=-180&&+c.lng<=180;}
+function syncDepotMarker(){
+  if(!map)return;if(depotMarker){map.removeLayer(depotMarker);depotMarker=null;}
+  if(validDepot(depotCoord)){const ic=L.divIcon({className:'depot-icon',html:'🏠',iconSize:[32,32],iconAnchor:[16,28]});depotMarker=L.marker([depotCoord.lat,depotCoord.lng],{icon:ic,zIndexOffset:1000}).addTo(map).bindPopup('<b>Lokasi Depo</b><br>'+depotCoord.lat.toFixed(6)+', '+depotCoord.lng.toFixed(6));}
+  updateDepotUI();
+}
+function updateDepotUI(){const b=$('depotBtn');if(b){b.classList.toggle('on',validDepot(depotCoord));b.textContent=validDepot(depotCoord)?'🏠 Depo Aktif':'🏠 Depo';}const d=$('dayBtn');if(d)d.disabled=!OUTLETS.some(o=>/^R0[1-6]$/.test(o.rute));}
+function setDepot(c){if(!validDepot(c))return false;depotCoord={lat:+c.lat,lng:+c.lng};syncDepotMarker();render();return true;}
+function clearDepot(){depotCoord=null;depotPickMode=false;if(map&&map.getContainer())map.getContainer().classList.remove('depot-pick');if(map&&depotMarker)map.removeLayer(depotMarker);depotMarker=null;updateDepotUI();}
+function openDepotModal(){const ok=validDepot(depotCoord);$('depotLat').value=ok?depotCoord.lat:'';$('depotLng').value=ok?depotCoord.lng:'';$('depotStatus').textContent=ok?('Aktif · '+depotCoord.lat.toFixed(6)+', '+depotCoord.lng.toFixed(6)):'Belum ditentukan (opsional)';$('depotDelete').disabled=!ok;$('depotErr').textContent='';$('depotModal').classList.add('open');}
+function closeDepotModal(){$('depotModal').classList.remove('open');}
+function beginDepotPick(){closeDepotModal();if(lassoMode)setLassoMode(false);depotPickMode=true;map.getContainer().classList.add('depot-pick');}
+function saveDepotInput(){const c={lat:parseFloat($('depotLat').value),lng:parseFloat($('depotLng').value)};if(!validDepot(c)){$('depotErr').textContent='Latitude harus -90–90 dan Longitude -180–180.';return;}setDepot(c);closeDepotModal();}
+/* ===== MULTI-PICK: selection state + Shift box-select + satu Lasso Mode ===== */
+const SEL=new Set();
+let MARKERS={};
+let MARKERS_BY_GROUP={};
+function toggleSel(code){if(viewerMode)return;if(SEL.has(code))SEL.delete(code);else SEL.add(code);refreshSelVisuals();updateSelBar();}
+function clearSel(){SEL.clear();refreshSelVisuals();updateSelBar();}
 function markerStyle(o){
-  if(SEL.has(o.code)) return {radius:8,weight:3.5,color:'#2d7bf4',fillColor:colorOf(o),fillOpacity:1};
+  if(dayPreviewState){const a=dayPreviewState.a,b=dayPreviewState.b;if(o.rute===a||o.rute===b){const visual=o.rute===a?b:a;return {radius:6,weight:1.8,color:'rgba(255,255,255,.85)',fillColor:colorMaps.rute[visual]||'#9aa',fillOpacity:.98,opacity:1};}return {radius:6,weight:1.2,color:'rgba(255,255,255,.55)',fillColor:colorOf(o),fillOpacity:.27,opacity:.28};}
+  if(SEL.has(o.code))return {radius:8,weight:3.5,color:'#2d7bf4',fillColor:colorOf(o),fillOpacity:1};
   return {radius:6,weight:1.5,color:'#fff',fillColor:colorOf(o),fillOpacity:.95};
 }
-function refreshSelVisuals(){ (window._mapped||[]).forEach(o=>{const mk=MARKERS[o.code]; if(mk)mk.setStyle(markerStyle(o));}); if(typeof legActive==='function'&&legActive())legendApply(); }
-function setSelMode(on){
-  selMode=on;
-  if(on&&lassoMode)setLassoMode(false);
-  $('selModeBtn').classList.toggle('on',on);
-  $('selModeBtn').textContent=on?'⬚ Pilih: ON':'⬚ Pilih';
-  const c=map&&map.getContainer(); if(c)c.classList.toggle('boxsel-on',on);
-  if(map){ if(on)map.dragging.disable(); else if(!lassoMode)map.dragging.enable(); }
-}
-let lassoMode=false;
+function refreshSelVisuals(){(window._mapped||[]).forEach(o=>{const mk=MARKERS[o.code];if(mk)mk.setStyle(markerStyle(o));});if(typeof legActive==='function'&&legActive())legendApply();}
+
+let lassoMode=false,lassoCancelDraw=null;
 function setLassoMode(on){
+  on=viewerMode?false:!!on;
+  if(on&&depotPickMode){depotPickMode=false;const dc=map&&map.getContainer();if(dc)dc.classList.remove('depot-pick');}
+  if(!on&&typeof lassoCancelDraw==='function')lassoCancelDraw();
   lassoMode=on;
-  if(on&&selMode)setSelMode(false);
-  const b=$('lassoBtn'); if(b){b.classList.toggle('on',on);b.textContent=on?'✏️ Lasso sentuh: ON':'✏️ Lasso';}
-  const c=map&&map.getContainer(); if(c)c.classList.toggle('lasso-on',on);
-  // klik kiri tetap geser peta; lasso pakai klik KANAN (desktop) atau tombol ini untuk gambar pakai jari (HP)
+  const b=$('lassoBtn');if(b){b.classList.toggle('on',on);b.textContent=on?'🟢 Lasso ON':'✏️ Lasso';}
+  const c=map&&map.getContainer();if(c)c.classList.toggle('lasso-on',on);
+  if(map){if(on)map.dragging.disable();else map.dragging.enable();}
 }
+
+// Shift + left-drag box selection tetap tersedia tanpa tombol/mode Pilih.
 function initBoxSelect(){
-  const cont=map.getContainer(); let sp=null,box=null;
-  function show(a,b){ if(!box){box=document.createElement('div');box.className='selbox';cont.appendChild(box);} 
+  const cont=map.getContainer();let sp=null,box=null;
+  function show(a,b){if(!box){box=document.createElement('div');box.className='selbox';cont.appendChild(box);}
     const x1=Math.min(a.x,b.x),y1=Math.min(a.y,b.y),w=Math.abs(a.x-b.x),h=Math.abs(a.y-b.y);
-    box.style.left=x1+'px';box.style.top=y1+'px';box.style.width=w+'px';box.style.height=h+'px'; }
+    box.style.left=x1+'px';box.style.top=y1+'px';box.style.width=w+'px';box.style.height=h+'px';}
   function down(e){
-    if(!(selMode||e.shiftKey))return;            // box select hanya saat mode pilih ATAU shift ditahan
-    if(e.button!==0)return;
-    sp=L.DomEvent.getMousePosition(e,cont); box=null;
-    map.dragging.disable(); L.DomUtil.disableTextSelection();
-    document.addEventListener('mousemove',move); document.addEventListener('mouseup',up);
-    L.DomEvent.preventDefault(e);
+    if(viewerMode||lassoMode||!e.shiftKey||e.button!==0)return;
+    sp=L.DomEvent.getMousePosition(e,cont);box=null;map.dragging.disable();L.DomUtil.disableTextSelection();
+    document.addEventListener('mousemove',move);document.addEventListener('mouseup',up);L.DomEvent.preventDefault(e);
   }
-  function move(e){ if(!sp)return; show(sp,L.DomEvent.getMousePosition(e,cont)); }
+  function move(e){if(sp)show(sp,L.DomEvent.getMousePosition(e,cont));}
   function up(e){
-    document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up);
-    if(!selMode)map.dragging.enable(); L.DomUtil.enableTextSelection();
-    if(sp){
-      const ep=L.DomEvent.getMousePosition(e,cont), moved=Math.abs(ep.x-sp.x)+Math.abs(ep.y-sp.y);
-      if(moved>4){
-        const b=L.bounds(sp,ep);
-        (window._mapped||[]).forEach(o=>{ const p=map.latLngToContainerPoint([o.coord.lat,o.coord.lng]); if(b.contains(p))SEL.add(o.code); });
-        refreshSelVisuals(); updateSelBar();
-      }
-    }
-    if(box){box.remove();box=null;} sp=null;
+    document.removeEventListener('mousemove',move);document.removeEventListener('mouseup',up);
+    if(!lassoMode)map.dragging.enable();L.DomUtil.enableTextSelection();
+    if(sp){const ep=L.DomEvent.getMousePosition(e,cont),moved=Math.abs(ep.x-sp.x)+Math.abs(ep.y-sp.y);
+      if(moved>4){const b=L.bounds(sp,ep);(window._mapped||[]).forEach(o=>{const p=map.latLngToContainerPoint([o.coord.lat,o.coord.lng]);if(b.contains(p))SEL.add(o.code);});refreshSelVisuals();updateSelBar();}}
+    if(box){box.remove();box=null;}sp=null;
   }
   cont.addEventListener('mousedown',down);
 }
+
 function initLasso(){
-  const cont=map.getContainer();
-  let pts=null,svg=null,path=null,lastPt=null,raf=0;
-  const EDGE=46, MAX=14;          // px dari tepi mulai geser; kecepatan maks px/frame
+  const cont=map.getContainer();let pts=null,svg=null,path=null,lastPt=null,raf=0;
+  const EDGE=46,MAX=14;
   function startSvg(){
-    svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
-    svg.setAttribute('class','lassosvg');
+    svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('class','lassosvg');
     svg.style.cssText='position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:650';
-    path=document.createElementNS('http://www.w3.org/2000/svg','path');
-    path.setAttribute('fill','rgba(240,168,48,.10)');path.setAttribute('stroke','#f0a830');
-    path.setAttribute('stroke-width','3');path.setAttribute('stroke-linecap','round');path.setAttribute('stroke-linejoin','round');
-    svg.appendChild(path);cont.appendChild(svg);
+    path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('fill','rgba(240,168,48,.10)');path.setAttribute('stroke','#f0a830');
+    path.setAttribute('stroke-width','3');path.setAttribute('stroke-linecap','round');path.setAttribute('stroke-linejoin','round');svg.appendChild(path);cont.appendChild(svg);
   }
-  // titik disimpan sebagai latlng → tetap nempel ke peta saat digeser
-  function draw(){ if(!path||!pts||!pts.length)return;
-    const cp=pts.map(ll=>map.latLngToContainerPoint(ll));
-    let d='M'+cp[0].x+' '+cp[0].y;
-    if(cp.length<3){ for(let i=1;i<cp.length;i++)d+=' L'+cp[i].x+' '+cp[i].y; }
-    else{
-      for(let i=1;i<cp.length-1;i++){const xc=(cp[i].x+cp[i+1].x)/2,yc=(cp[i].y+cp[i+1].y)/2;d+=' Q'+cp[i].x+' '+cp[i].y+' '+xc+' '+yc;}
-      d+=' L'+cp[cp.length-1].x+' '+cp[cp.length-1].y;
-    }
-    path.setAttribute('d',d);
-  }
-  // ray-casting point-in-polygon (di ruang lng/lat → bebas dari geser/zoom)
+  function draw(){if(!path||!pts||!pts.length)return;const cp=pts.map(ll=>map.latLngToContainerPoint(ll));let d='M'+cp[0].x+' '+cp[0].y;
+    if(cp.length<3){for(let i=1;i<cp.length;i++)d+=' L'+cp[i].x+' '+cp[i].y;}
+    else{for(let i=1;i<cp.length-1;i++){const xc=(cp[i].x+cp[i+1].x)/2,yc=(cp[i].y+cp[i+1].y)/2;d+=' Q'+cp[i].x+' '+cp[i].y+' '+xc+' '+yc;}d+=' L'+cp[cp.length-1].x+' '+cp[cp.length-1].y;}
+    path.setAttribute('d',d);}
   function inside(p,poly){let c=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){
-    const xi=poly[i].x,yi=poly[i].y,xj=poly[j].x,yj=poly[j].y;
-    if(((yi>p.y)!==(yj>p.y))&&(p.x<(xj-xi)*(p.y-yi)/(yj-yi)+xi))c=!c;}return c;}
-  function addPt(cpt){ const ll=map.containerPointToLatLng(cpt);
-    const last=(pts&&pts.length)?map.latLngToContainerPoint(pts[pts.length-1]):null;
-    if(!last||Math.abs(cpt.x-last.x)+Math.abs(cpt.y-last.y)>3){pts.push(ll);draw();} }
-  function edgeLoop(){
-    raf=0; if(!pts||!lastPt)return;
-    const sz=map.getSize(); let vx=0,vy=0;
-    if(lastPt.x<EDGE)vx=-((EDGE-lastPt.x)/EDGE)*MAX; else if(lastPt.x>sz.x-EDGE)vx=((lastPt.x-(sz.x-EDGE))/EDGE)*MAX;
-    if(lastPt.y<EDGE)vy=-((EDGE-lastPt.y)/EDGE)*MAX; else if(lastPt.y>sz.y-EDGE)vy=((lastPt.y-(sz.y-EDGE))/EDGE)*MAX;
-    if(vx||vy){ map.panBy([vx,vy],{animate:false}); addPt(L.point(lastPt.x,lastPt.y)); draw(); }
-    raf=requestAnimationFrame(edgeLoop);
-  }
+    const xi=poly[i].x,yi=poly[i].y,xj=poly[j].x,yj=poly[j].y;if(((yi>p.y)!==(yj>p.y))&&(p.x<(xj-xi)*(p.y-yi)/(yj-yi)+xi))c=!c;}return c;}
+  function addPt(cpt){const ll=map.containerPointToLatLng(cpt),last=(pts&&pts.length)?map.latLngToContainerPoint(pts[pts.length-1]):null;
+    if(!last||Math.abs(cpt.x-last.x)+Math.abs(cpt.y-last.y)>3){pts.push(ll);draw();}}
+  function edgeLoop(){raf=0;if(!pts||!lastPt)return;const sz=map.getSize();let vx=0,vy=0;
+    if(lastPt.x<EDGE)vx=-((EDGE-lastPt.x)/EDGE)*MAX;else if(lastPt.x>sz.x-EDGE)vx=((lastPt.x-(sz.x-EDGE))/EDGE)*MAX;
+    if(lastPt.y<EDGE)vy=-((EDGE-lastPt.y)/EDGE)*MAX;else if(lastPt.y>sz.y-EDGE)vy=((lastPt.y-(sz.y-EDGE))/EDGE)*MAX;
+    if(vx||vy){map.panBy([vx,vy],{animate:false});addPt(L.point(lastPt.x,lastPt.y));draw();}raf=requestAnimationFrame(edgeLoop);}
   function startDraw(cpt){
-    pts=[map.containerPointToLatLng(cpt)]; lastPt=L.point(cpt.x,cpt.y);
-    map.dragging.disable();L.DomUtil.disableTextSelection();startSvg();draw();
+    if(!lassoMode||pts)return;pts=[map.containerPointToLatLng(cpt)];lastPt=L.point(cpt.x,cpt.y);map.dragging.disable();L.DomUtil.disableTextSelection();startSvg();draw();
     if(!raf)raf=requestAnimationFrame(edgeLoop);
   }
-  function endDraw(){
-    if(raf){cancelAnimationFrame(raf);raf=0;}
-    if(!selMode)map.dragging.enable();L.DomUtil.enableTextSelection();
+  function cleanup(){
+    if(raf){cancelAnimationFrame(raf);raf=0;}document.removeEventListener('mousemove',move);document.removeEventListener('mouseup',up);
+    L.DomUtil.enableTextSelection();if(svg){svg.remove();svg=null;path=null;}pts=null;lastPt=null;
+  }
+  function finishSelection(){
     const drew=pts&&pts.length>=3;
-    if(drew){
-      const poly=pts.map(ll=>({x:ll.lng,y:ll.lat}));
-      (window._mapped||[]).forEach(o=>{ if(o.coord&&inside({x:o.coord.lng,y:o.coord.lat},poly))SEL.add(o.code); });
-      refreshSelVisuals();updateSelBar();
-    }
-    if(svg){svg.remove();svg=null;path=null;} pts=null; lastPt=null;
-    if(drew&&lassoMode)setLassoMode(false);   // auto-off setelah satu lingkaran
+    if(drew){const poly=pts.map(ll=>({x:ll.lng,y:ll.lat}));(window._mapped||[]).forEach(o=>{if(o.coord&&inside({x:o.coord.lng,y:o.coord.lat},poly))SEL.add(o.code);});refreshSelVisuals();updateSelBar();}
+    cleanup();setLassoMode(false);
   }
-  function down(e){ if(e.button!==2)return;            // klik KANAN = lasso; klik kiri = geser biasa
-    startDraw(L.DomEvent.getMousePosition(e,cont));
-    document.addEventListener('mousemove',move);document.addEventListener('mouseup',up);
-    L.DomEvent.preventDefault(e);
+  function move(e){if(!pts)return;const p=L.DomEvent.getMousePosition(e,cont);lastPt=L.point(p.x,p.y);addPt(p);}
+  function up(){finishSelection();}
+  function down(e){
+    if(!lassoMode||e.button!==0)return;
+    startDraw(L.DomEvent.getMousePosition(e,cont));document.addEventListener('mousemove',move);document.addEventListener('mouseup',up);L.DomEvent.preventDefault(e);
   }
-  function move(e){ if(!pts)return; const p=L.DomEvent.getMousePosition(e,cont); lastPt=L.point(p.x,p.y); addPt(p); }
-  function up(e){ document.removeEventListener('mousemove',move);document.removeEventListener('mouseup',up); endDraw(); }
+  lassoCancelDraw=cleanup;
   cont.addEventListener('mousedown',down);
-  cont.addEventListener('contextmenu',e=>{e.preventDefault();});   // matikan menu klik-kanan biar bisa lasso
-  // touch (mobile): gambar pakai jari
-  cont.addEventListener('touchstart',ev=>{ if(!lassoMode)return; const t=ev.touches[0];if(!t)return;
-    const r=cont.getBoundingClientRect(); startDraw(L.point(t.clientX-r.left,t.clientY-r.top)); ev.preventDefault();
-  },{passive:false});
-  cont.addEventListener('touchmove',ev=>{ if(!lassoMode||!pts)return; const t=ev.touches[0];if(!t)return;
-    const r=cont.getBoundingClientRect(),p=L.point(t.clientX-r.left,t.clientY-r.top); lastPt=p; addPt(p); ev.preventDefault();
-  },{passive:false});
-  cont.addEventListener('touchend',ev=>{ if(!lassoMode)return; endDraw(); });
+  // Klik kanan hanya toggle ON/OFF. Tidak pernah menjadi drawing gesture.
+  cont.addEventListener('contextmenu',e=>{if(viewerMode)return;e.preventDefault();setLassoMode(!lassoMode);});
+  // Touch tetap memakai tombol Lasso, lalu drag satu jari.
+  cont.addEventListener('touchstart',ev=>{if(!lassoMode)return;const t=ev.touches[0];if(!t)return;const r=cont.getBoundingClientRect();startDraw(L.point(t.clientX-r.left,t.clientY-r.top));ev.preventDefault();},{passive:false});
+  cont.addEventListener('touchmove',ev=>{if(!lassoMode||!pts)return;const t=ev.touches[0];if(!t)return;const r=cont.getBoundingClientRect(),p=L.point(t.clientX-r.left,t.clientY-r.top);lastPt=p;addPt(p);ev.preventDefault();},{passive:false});
+  cont.addEventListener('touchend',()=>{if(lassoMode)finishSelection();});
 }
 function popup(o){const col=colorMaps.sales[o.sales]||'#888';
   return '<div class="pop"><div class="pn">'+o.name+'</div><div class="pk">'+o.code+'</div>'+
@@ -1494,8 +1499,8 @@ function popup(o){const col=colorMaps.sales[o.sales]||'#888';
     (o.edited?'<div class="pedited">✏️ Sudah dipindahkan dari JKS asli</div>':'')+
     '<div class="popfoot"><span class="badge" style="background:'+col+'">'+displayDimension('sales',o.sales)+'</span>'+
     '<a class="gmap" href="https://www.google.com/maps/search/?api=1&query='+o.coord.lat+','+o.coord.lng+'" target="_blank" rel="noopener">📍 Buka di Google Maps</a></div>'+
-    '<button class="editbtn" onclick="openEdit(\''+o.code+'\')">✏️ Ubah JKS (sales / rute / cycle)</button>'+
-    '<button class="delbtn" onclick="deletePoint(\''+o.code+'\')">🗑 Hapus titik (jadikan belum termapping)</button></div>';}
+    (viewerMode?'':('<button class="editbtn" onclick="openEdit(\''+o.code+'\')">✏️ Ubah JKS (sales / rute / cycle)</button>'+
+    '<button class="delbtn" onclick="deletePoint(\''+o.code+'\')">🗑 Hapus titik (jadikan belum termapping)</button>'))+'</div>';}
 function doFit(){const m=(window._mapped||[]);if(m.length){try{map.fitBounds(L.latLngBounds(m.map(o=>[o.coord.lat,o.coord.lng])).pad(0.12));}catch(e){}}}
 function render(){
   updateColorVisuals();
@@ -1511,7 +1516,7 @@ function render(){
     mk.bindPopup(popup(o));
     mk.on('click',e=>{
       const oe=e.originalEvent||{};
-      if(oe.ctrlKey||oe.metaKey||selMode){ L.DomEvent.stop(e); mk.closePopup(); toggleSel(o.code); }
+      if(!viewerMode&&(oe.ctrlKey||oe.metaKey)){ L.DomEvent.stop(e); mk.closePopup(); toggleSel(o.code); }
     });
     mk.addTo(fg);MARKERS[o.code]=mk;
     CDIMS.forEach(d=>{const k=o[d];let s=MARKERS_BY_GROUP[d].get(k);if(!s){s=new Set();MARKERS_BY_GROUP[d].set(k,s);}s.add(o.code);});
@@ -1519,14 +1524,12 @@ function render(){
   LEG.appliedGroups=new Set();LEG.appliedDim=null;   // marker baru dibuat ulang → reset state highlight sebelum diterapkan lagi
   updateEditInfo();updateSelBar();
   if(!fitted&&mapped.length){doFit();fitted=true;}
-  $('stVis').textContent=vis.length;$('stMap').textContent=mapped.length;$('stUn').textContent=unmapped.length;$('pillCount').textContent=mapped.length;
+  $('pillCount').textContent=mapped.length;
   {const km=aggregateMetrics(vis);
     const elKO=$('kpiOmset'); if(elKO)elKO.textContent=fmtRupiah(km.totalOmset);
     const elKE=$('kpiEC'); if(elKE)elKE.textContent=fmtNumID(km.totalEC);
     const elKPE=$('kpiOmsetPerEC'); if(elKPE)elKPE.textContent='Omset / EC: '+(km.omsetPerEC>0?fmtRupiah(km.omsetPerEC):'—');}
-  renderLegend(mapped);
-  $('unCount').textContent=unmapped.length;
-  $('unmapWrap').innerHTML=unmapped.slice(0,300).map(o=>'<div class="unrow" style="cursor:pointer" onclick="openEdit(\''+o.code+'\')"><b>'+o.code+'</b> — '+o.name+' <span style="color:var(--muted2)">('+displayDimension('sales',o.sales)+')</span>'+(o.ptDel?' <span style="color:#e05b5b">🗑 dihapus</span>':'')+'</div>').join('')||'<div class="unrow">🎉 Semua outlet terlihat sudah termapping.</div>';
+  renderLegend(mapped);updateDepotUI();
   if(routeShown&&routeLayer){drawRoutes();}
 }
 /* ===== LEGEND INTERAKTIF: klik = kunci grup (hover HANYA efek CSS, tidak menyentuh marker) ===== */
@@ -1581,14 +1584,7 @@ function legendApply(){
       const keys=[...newGroups], stats=LEG.stats||new Map();
       let tot=0,tomset=0,tec=0;
       keys.forEach(k=>{const g=stats.get(k); if(g){tot+=g.count;tomset+=g.omset;tec+=g.ec;}});
-      if(keys.length===1){
-        const ov=legOverlapCount(e,keys[0]);
-        const perEC= tec>0 ? fmtRupiah(tomset/tec) : '—';
-        st.innerHTML='Menyala: <b>'+legEsc(keys[0])+'</b> — '+tot+' toko · Omset '+formatCompactRupiah(tomset)+' · EC '+fmtNumID(tec)+' · Omset/EC '+perEC
-          +(ov?' · <span class="ov">'+ov+' numpuk</span>':'');
-      }else{
-        st.innerHTML='Menyala: <b>'+keys.length+' grup</b> — '+tot+' toko · Omset '+formatCompactRupiah(tomset)+' · EC '+fmtNumID(tec);
-      }
+      st.textContent='';
     }
   }
   renderSelProj();   // proyeksi "TUJUAN +N / ASAL -N" tampil di bar seleksi
@@ -1626,6 +1622,10 @@ function initLegendInteractions(){
     else{(LEG.pinned.size===1&&LEG.pinned.has(v))?LEG.pinned.clear():(LEG.pinned.clear(),LEG.pinned.add(v));}
     legendApply();if(typeof autoFillBulkFromLegend==='function')autoFillBulkFromLegend();});
 }
+function median(nums){if(!nums.length)return Infinity;const a=nums.slice().sort((x,y)=>x-y),m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2;}
+function routeDepotScore(route,arr){if(!validDepot(depotCoord))return null;const rows=(arr||OUTLETS).filter(o=>o.coord&&o.rute===route),ds=rows.map(o=>_hav([o.coord.lat,o.coord.lng],[depotCoord.lat,depotCoord.lng]));if(!ds.length)return null;return {median:median(ds),mean:ds.reduce((a,b)=>a+b,0)/ds.length};}
+function legendLabel(dim,v){if(dim==='rute')return routeFriendly(v);if(dim==='rc'){const p=String(v).split(' · ');return routeFriendly(p[0])+(p.length>1?' · '+p.slice(1).join(' · '):'');}return displayDimension(dim,v);}
+function legendRoute(dim,v){return dim==='rute'?v:(dim==='rc'?String(v).split(' · ')[0]:null);}
 function renderLegend(mapped){
   const e=eff(),lg=$('legend');lg.classList.remove('hidden');
   if(LEG.dim!==e){LEG.dim=e;LEG.pinned.clear();}
@@ -1634,13 +1634,13 @@ function renderLegend(mapped){
   mapped.forEach(o=>{const k=o[e];let g=groupStats.get(k);if(!g){g={count:0,omset:0,ec:0};groupStats.set(k,g);}
     g.count++; g.omset+=(o.omset||0); g.ec+=(o.ec||0);});
   LEG.stats=groupStats; LEG._ovCache=new Map();   // cache overlap berlaku selama siklus render ini
-  let html='<h4>Warna: '+DIMS[e].label+'</h4><div class="tot">Total: '+mapped.length+' toko</div>';
-  html+='<div class="lstatus"></div><div class="lreset">↺ Tampilkan semua</div>';
+  let html='<h4>Warna: '+DIMS[e].label+'</h4>';
+  html+='<div class="lreset">↺ Tampilkan semua</div>';
   const hasF=!!F[e];
   vals[e].forEach(v=>{if(hasF&&!F[e].has(v))return;
     const g=groupStats.get(v)||{count:0,omset:0,ec:0};
     html+='<div class="lr" data-v="'+legEsc(v)+'"><span class="d" style="background:'+colorMaps[e][v]+'"></span>'
-        +'<span class="nmwrap"><span class="nm">'+legEsc(displayDimension(e,v))+'</span><span class="lrsub">Omset '+formatCompactRupiah(g.omset)+' · EC '+fmtNumID(g.ec)+'</span></span>'
+        +'<span class="nmwrap"><span class="nm">'+legEsc(legendLabel(e,v))+'</span><span class="lrsub">'+(()=>{const r=legendRoute(e,v),ds=r?routeDepotScore(r):null;return (ds?'±'+ds.median.toLocaleString('id-ID',{maximumFractionDigits:1})+' km dari Depo · ':'')+'Omset '+formatCompactRupiah(g.omset)+' · EC '+fmtNumID(g.ec);})()+'</span></span>'
         +'<span class="c">'+g.count+'</span></div>';});
   html+='<div class="lhint">Arahkan untuk melihat · klik untuk menandai · Ctrl+klik untuk beberapa grup</div>';
   lg.innerHTML=html;
@@ -1885,14 +1885,15 @@ function exportXLSX(){
 // Export = a full, self-contained copy of THIS app with ALL data embedded.
 // Whoever opens it can filter sales/rute/cycle & switch color modes — no upload needed.
 function exportHTML(){
+  if(viewerMode)return;
   if(!OUTLETS.length){alert('Belum ada data untuk diekspor.');return;}
   // strip pristine-only originals to keep file smaller; keep o.row for Excel export
   const slim=OUTLETS.map(o=>({code:o.code,key:o.key,name:o.name,addr:o.addr,kec:o.kec,type:o.type,
     rute:o.rute,cycle:o.cycle,sales:o.sales,kat:o.kat,coord:o.coord,row:o.row,edited:o.edited,
     omset:o.omset||0,ec:o.ec||0,
     ptDel:!!o.ptDel,_savedCoord:o._savedCoord||null,
-    sls0:o.sls0,rute0:o.rute0,cycle0:o.cycle0}));
-  const E={outlets:slim,vals:vals,colorMaps:colorMaps,colorMode:colorMode,depo:DEPO,
+    sls0:o.sls0,rute0:o.rute0,cycle0:o.cycle0,rawLat:o.rawLat,rawLng:o.rawLng,sourceCoordValid:o.sourceCoordValid===true}));
+  const E={outlets:slim,vals:vals,colorMaps:colorMaps,colorMode:colorMode,clusterMode:clusterMode,depo:DEPO,depotCoord:depotCoord,viewerMode:true,activeSalesRoster:activeSalesRoster,
     header:TGT_HEADER,cols:TGT_COLS,salescode:SALES_CODE};
   const json=JSON.stringify(E).replace(/</g,'\\u003c');
   const filled='<script id="embedded-data">window.EMBEDDED='+json+';<\/script>';
@@ -1901,29 +1902,34 @@ function exportHTML(){
 }
 // Load straight from embedded data (used inside exported files)
 function buildFromEmbedded(E){
-  OUTLETS=E.outlets; vals=E.vals; colorMaps=E.colorMaps; colorMode=E.colorMode||'auto'; DEPO=E.depo||''; setTitle(DEPO);
+  OUTLETS=E.outlets||[]; vals=E.vals||vals; colorMaps=E.colorMaps||colorMaps;viewerMode=E.viewerMode===true;activeSalesRoster=normalizeSalesRoster(E.activeSalesRoster||[],(E.activeSalesRoster||[]).length);
+  colorMode=(E.colorMode&&E.colorMode!=='auto'&&CDIMS.includes(E.colorMode))?E.colorMode:'sales';
+  clusterMode=E.clusterMode==='traffic'?'traffic':'blocking'; DEPO=E.depo||''; depotCoord=validDepot(E.depotCoord)?{lat:+E.depotCoord.lat,lng:+E.depotCoord.lng}:null; setTitle(DEPO);
   TGT_HEADER=E.header||[]; TGT_COLS=E.cols||{}; SALES_CODE=E.salescode||{};
   OUTLETS.forEach(o=>{if(o.rc==null)o.rc=(o.rute&&o.rute!=='-'?o.rute:'?')+' · '+(o.cycle&&o.cycle!=='-'?o.cycle:'?');
-    if(o.omset==null||!isFinite(o.omset))o.omset=0; if(o.ec==null||!isFinite(o.ec))o.ec=0;});
-  if(!vals.rc||!vals.rc.length)buildRC();
-  FDIMS.forEach(k=>F[k]=new Set(vals[k]));
+    if(o.omset==null||!isFinite(o.omset))o.omset=0; if(o.ec==null||!isFinite(o.ec))o.ec=0;
+    if(typeof o.sourceCoordValid!=='boolean')o.sourceCoordValid=sourceCoordinateValid(o.rawLat,o.rawLng);});
+  rebuildInvalidSourcePoints();
+  rebuildVals(FDIMS,rcSort);buildRC();
   F.kec='';F.search='';
   FDIMS.forEach(buildDim); buildKec(); fillBulkSelectors(); SEL.clear();
+  rcSalesManual=false;setAutoSalesCount(OUTLETS.filter(o=>o.coord),true);updateClusterMethodUI();
   $('panel').classList.remove('hidden'); $('uploadCard').classList.add('hidden');
   $('changeBtn').style.display='none';  /* file hasil export tidak perlu opsi muat depo lain */
-  initMap(); fitted=false; render(); setLoad(false);
+  initMap(); syncDepotMarker();if(viewerMode)applyViewerMode();fitted=false; render(); setLoad(false);
 }
+function applyViewerMode(){document.body.classList.add('viewer-mode');dayPreviewState=null;SEL.clear();if(lassoMode)setLassoMode(false);$('editModal').classList.remove('open');$('clusterFloat').classList.add('hidden');$('dayModal').classList.add('hidden');}
 /* ===== EDIT JKS (pindahkan toko antar sales/rute/cycle) ===== */
 let editCode=null;
 function fillSel(id,dim,arr,cur){const s=$(id);s.innerHTML='';(arr||[]).slice().sort(sortWithBlankLast).forEach(v=>{const op=document.createElement('option');op.value=v;op.textContent=displayDimension(dim,v);if(v===cur)op.selected=true;s.appendChild(op);});}
-function openEdit(code){const o=OUTLETS.find(x=>x.code===code);if(!o)return;editCode=code;
+function openEdit(code){if(viewerMode)return;const o=OUTLETS.find(x=>x.code===code);if(!o)return;editCode=code;
   $('eTitle').textContent=o.name;$('eCode').textContent=o.code+' · '+(o.kec&&o.kec!=='-'?o.kec:'—');
   fillSel('eSales','sales',vals.sales,o.sales);fillSel('eRute','rute',vals.rute,o.rute);fillSel('eCycle','cycle',vals.cycle,o.cycle);
   updateDelBtn(o);
   $('editModal').classList.add('open');if(typeof map!=='undefined'&&map)map.closePopup();}
 function closeEdit(){$('editModal').classList.remove('open');editCode=null;}
 /* ===== HAPUS / KEMBALIKAN TITIK: titik yg gak make sense bisa dihapus → jadi "belum termapping" & masuk Sheet 2 ===== */
-function deletePoint(code){
+function deletePoint(code){if(viewerMode)return;
   const o=OUTLETS.find(x=>x.code===code); if(!o||!o.coord)return;
   pushUndo([code]);                       // bisa di-undo (snapshot menyimpan koordinat lama)
   o._savedCoord=o.coord;                   // simpan utk tombol "Kembalikan"
@@ -1932,7 +1938,7 @@ function deletePoint(code){
   if(editCode===code)updateDelBtn(o);
   refreshCounts(); render(); updateEditInfo(); updateUndoBtn();
 }
-function restorePoint(code){
+function restorePoint(code){if(viewerMode)return;
   const o=OUTLETS.find(x=>x.code===code); if(!o)return;
   const c=o._savedCoord||COORD[o.key]; if(!c)return;
   pushUndo([code]);
@@ -2124,102 +2130,279 @@ function ensureNonEmpty(pts,assign,k,neigh){
   }
   return assign;
 }
-// PEMERATAAN RINGAN (prioritas #2): hanya mengupas titik PERBATASAN dari grup paling besar
-// ke tetangga yang masih kurang. Berhenti sebelum merusak blok → grouping tetap rapi.
-function lightBalance(pts,assign,k,neigh,tol){
-  const n=pts.length; if(k<=1)return assign;
-  const cnt=new Array(k).fill(0); for(let i=0;i<n;i++)cnt[assign[i]]++;
-  const ideal=n/k, stop=Math.max(1,Math.round(ideal*(tol||0.05)));
-  let g=0;
-  while(g++<n*5){
-    let O=0; for(let c=1;c<k;c++)if(cnt[c]>cnt[O])O=c;
-    if(cnt[O] <= ideal+stop) break;                  // sudah cukup → jangan kupas lagi
-    let bi=-1,bU=-1,bS=-1;
-    for(let i=0;i<n;i++) if(assign[i]===O){
-      const nb={}; for(const j of neigh[i]){const c=assign[j]; if(c!==O)nb[c]=(nb[c]||0)+1;}
-      for(const c in nb){const U=+c; if(cnt[U]<ideal && nb[c]>bS){bS=nb[c];bi=i;bU=U;}}
+// Cek bahwa source cluster tetap connected setelah satu boundary outlet diambil.
+function sourceStaysConnected(assign,cluster,skip,neigh){
+  let start=-1,total=0;for(let i=0;i<assign.length;i++)if(i!==skip&&assign[i]===cluster){total++;if(start<0)start=i;}
+  if(total<=1)return total===1;
+  const seen=new Set([start]),q=[start];while(q.length){const u=q.shift();for(const v of neigh[u])if(v!==skip&&assign[v]===cluster&&!seen.has(v)){seen.add(v);q.push(v);}}
+  return seen.size===total;
+}
+
+// PRIORITAS #2: balance hanya lewat boundary yang adjacent ke destination dan aman bagi connectivity source.
+// tolerance 0 tetap numeric 0; tidak ada boolean fallback.
+function boundaryBalance(pts,assign,k,neigh,tol){
+  const n=pts.length;if(k<=1||n===0)return assign;
+  const safeTol=Number.isFinite(tol)?Math.max(0,tol):0,ideal=n/k,allowance=Math.ceil(ideal*safeTol);
+  const cnt=new Array(k).fill(0);assign.forEach(c=>cnt[c]++);
+  const base=Math.floor(n/k),rem=n-base*k,target=new Array(k).fill(base);
+  [...Array(k).keys()].sort((a,b)=>cnt[b]-cnt[a]||a-b).slice(0,rem).forEach(c=>target[c]++);
+  let guard=0;
+  while(guard++<n*3){
+    const sources=[...Array(k).keys()].filter(c=>cnt[c]>target[c]+allowance).sort((a,b)=>(cnt[b]-target[b])-(cnt[a]-target[a])||a-b);
+    const deficits=new Set([...Array(k).keys()].filter(c=>cnt[c]<target[c]-allowance));
+    if(!sources.length||!deficits.size)break;
+    const adj=Array.from({length:k},()=>new Set());
+    for(let i=0;i<n;i++)for(const j of neigh[i])if(assign[i]!==assign[j]){adj[assign[i]].add(assign[j]);adj[assign[j]].add(assign[i]);}
+    let best=null;
+    for(const O of sources){
+      const prev=new Array(k).fill(-1),q=[O];prev[O]=O;let found=-1;
+      while(q.length&&found<0){const c=q.shift();if(c!==O&&deficits.has(c)){found=c;break;}for(const d of [...adj[c]].sort((a,b)=>a-b))if(prev[d]<0){prev[d]=c;q.push(d);}}
+      if(found<0)continue;
+      let step=found;while(prev[step]!==O)step=prev[step];const U=step;
+      for(let i=0;i<n;i++)if(assign[i]===O){
+        let contact=0;for(const j of neigh[i])if(assign[j]===U)contact++;
+        if(!contact||!sourceStaysConnected(assign,O,i,neigh))continue;
+        const score=contact*100000+(cnt[O]-target[O])*100-i;
+        if(!best||score>best.score)best={i,O,U,score};
+      }
     }
-    if(bi<0)break;                                   // tak ada tepi bersih → berhenti (blok aman)
-    assign[bi]=bU; cnt[O]--; cnt[bU]++;
+    if(!best)break;
+    assign[best.i]=best.U;cnt[best.O]--;cnt[best.U]++;
   }
   return assign;
 }
+
+function clusterComponents(assign,k,neigh){
+  const seen=new Array(assign.length).fill(false),by=Array.from({length:k},()=>[]);
+  for(let i=0;i<assign.length;i++)if(!seen[i]){const c=assign[i],mem=[],q=[i];seen[i]=true;
+    while(q.length){const u=q.shift();mem.push(u);for(const v of neigh[u])if(!seen[v]&&assign[v]===c){seen[v]=true;q.push(v);}}
+    by[c].push(mem);
+  }
+  return by;
+}
+
+// FINAL PRIORITAS #1: pindahkan fragment non-utama yang benar-benar bersentuhan dengan cluster tetangga.
+// Tidak ada balancing lagi setelah fungsi ini.
+function finalContiguityCleanup(pts,assign,k,neigh){
+  const n=assign.length;if(n<2)return assign;
+  for(let round=0;round<8;round++){
+    let changed=0;const comps=clusterComponents(assign,k,neigh),cnt=new Array(k).fill(0);assign.forEach(c=>cnt[c]++);
+    for(let c=0;c<k;c++){
+      const list=comps[c];if(list.length<=1)continue;
+      list.sort((a,b)=>b.length-a.length||a[0]-b[0]);const main=list[0],smallLimit=Math.max(3,Math.ceil(cnt[c]*0.15));
+      for(let ci=1;ci<list.length;ci++){
+        const frag=list[ci],votes={};let external=0,internal=0;
+        for(const i of frag)for(const j of neigh[i]){if(assign[j]===c)internal++;else{votes[assign[j]]=(votes[assign[j]]||0)+1;external++;}}
+        if(!external)continue; // natural island/gap: jangan dipaksa absurd
+        let to=-1,best=-1;for(const d in votes){const v=votes[d];if(v>best||(v===best&&+d<to)){best=v;to=+d;}}
+        const isTiny=frag.length<=smallLimit,strongContact=external>=internal;
+        if(to>=0&&(isTiny||strongContact)&&main.length>0){frag.forEach(i=>assign[i]=to);changed++;}
+      }
+    }
+    // Bersihkan titik yang mayoritas tetangganya cluster lain, hanya jika source tetap connected.
+    for(let i=0;i<n;i++){
+      const own=assign[i],votes={};let ownVotes=0;
+      for(const j of neigh[i]){if(assign[j]===own)ownVotes++;else votes[assign[j]]=(votes[assign[j]]||0)+1;}
+      let to=-1,best=0;for(const d in votes)if(votes[d]>best||(votes[d]===best&&+d<to)){best=votes[d];to=+d;}
+      if(to>=0&&best>ownVotes&&sourceStaysConnected(assign,own,i,neigh)){assign[i]=to;changed++;}
+    }
+    if(!changed)break;
+  }
+  return assign;
+}
+function balanceObjective(cnt,target){let mx=0,total=0;for(let c=0;c<cnt.length;c++){const d=Math.abs(cnt[c]-target[c]);mx=Math.max(mx,d);total+=d;}return [mx,total];}
+function objectiveBetter(a,b){return a[0]<b[0]||a[0]===b[0]&&a[1]<b[1];}
+function clusterAdjacency(assign,k,neigh){const g=Array.from({length:k},()=>new Set());for(let i=0;i<assign.length;i++)for(const j of neigh[i])if(assign[i]!==assign[j]){g[assign[i]].add(assign[j]);g[assign[j]].add(assign[i]);}return g;}
+function shortestClusterPath(graph,from,to){const prev=new Array(graph.length).fill(-1),q=[from];prev[from]=from;while(q.length){const c=q.shift();if(c===to)break;for(const d of [...graph[c]].sort((a,b)=>a-b))if(prev[d]<0){prev[d]=c;q.push(d);}}if(prev[to]<0)return null;const p=[];for(let c=to;;c=prev[c]){p.push(c);if(c===from)break;}return p.reverse();}
+function clusterIsConnected(assign,c,neigh){return clusterComponents(assign,Math.max(c+1,...assign)+1,neigh)[c].length<=1;}
+function sourceStaysConnectedWithout(assign,cluster,skipSet,neigh){let start=-1,total=0;for(let i=0;i<assign.length;i++)if(!skipSet.has(i)&&assign[i]===cluster){total++;if(start<0)start=i;}if(total<1)return false;if(total===1)return true;const seen=new Set([start]),q=[start];while(q.length){const u=q.shift();for(const v of neigh[u])if(!skipSet.has(v)&&assign[v]===cluster&&!seen.has(v)){seen.add(v);q.push(v);}}return seen.size===total;}
+function boundaryMoveOptionsLegacy(assign,from,to,neigh,size,limit,diag){
+  const seeds=[];for(let i=0;i<assign.length;i++)if(assign[i]===from){let contact=0;for(const j of neigh[i])if(assign[j]===to)contact++;if(contact)seeds.push({i,contact});}
+  if(!seeds.length){diag.rejectedNotAdjacent++;return [];}seeds.sort((a,b)=>b.contact-a.contact||a.i-b.i);const out=[],seen=new Set();let explored=0,maxExplore=Math.max(24,limit*16);
+  function add(set,contact){const key=[...set].sort((a,b)=>a-b).join(',');if(seen.has(key))return;seen.add(key);diag.boundaryCandidates++;if(!sourceStaysConnectedWithout(assign,from,set,neigh)){diag.rejectedDisconnected++;return;}diag.safeCandidates++;out.push({idx:[...set],contact});}
+  function grow(set,contact){if(explored++>=maxExplore||out.length>=limit)return;if(set.size===size){add(set,contact);return;}const frontier=new Set();for(const u of set)for(const v of neigh[u])if(assign[v]===from&&!set.has(v))frontier.add(v);const next=[...frontier].sort((a,b)=>{const ac=neigh[a].filter(x=>assign[x]===to).length,bc=neigh[b].filter(x=>assign[x]===to).length;return bc-ac||a-b;});for(const v of next){const ns=new Set(set);ns.add(v);grow(ns,contact+neigh[v].filter(x=>assign[x]===to).length);if(out.length>=limit)return;}}
+  for(const seed of seeds){grow(new Set([seed.i]),seed.contact);if(out.length>=limit)break;}out.sort((a,b)=>b.contact-a.contact||a.idx[0]-b.idx[0]);return out.slice(0,limit);
+}
+// Blocking Level-1 only: discover border candidates with the wider, still gap-aware boundary graph.
+// Source removal is always validated with the conservative connectivity graph.
+function boundaryMoveOptions(assign,from,to,boundaryNeigh,connectivityNeigh,pts,size,limit,diag){
+  const seeds=[];
+  for(let i=0;i<assign.length;i++)if(assign[i]===from){const dest=[];for(const j of boundaryNeigh[i])if(assign[j]===to)dest.push(j);if(!dest.length)continue;const avgDist=dest.reduce((sum,j)=>sum+Math.sqrt(_dist2(pts[i],pts[j])),0)/dest.length,interior=connectivityNeigh[i].filter(j=>assign[j]===from).length;seeds.push({i,contact:dest.length,avgDist,interior});}
+  if(!seeds.length){diag.rejectedNotAdjacent++;return [];}
+  seeds.sort((a,b)=>b.contact-a.contact||a.avgDist-b.avgDist||a.interior-b.interior||a.i-b.i);
+  const out=[],seen=new Set();let explored=0,maxExplore=Math.max(40,limit*24);
+  function contactStats(set){let contact=0,dist=0;for(const i of set)for(const j of boundaryNeigh[i])if(assign[j]===to){contact++;dist+=Math.sqrt(_dist2(pts[i],pts[j]));}return {contact,avgDist:contact?dist/contact:Infinity};}
+  function add(set){const key=[...set].sort((a,b)=>a-b).join(',');if(seen.has(key))return;seen.add(key);diag.boundaryCandidates++;const stat=contactStats(set);if(!stat.contact){diag.rejectedNotAdjacent++;return;}if(!sourceStaysConnectedWithout(assign,from,set,connectivityNeigh)){diag.rejectedDisconnected++;return;}const moved=[...set];moved.forEach(i=>assign[i]=to);const destSafe=clusterIsConnected(assign,to,boundaryNeigh);moved.forEach(i=>assign[i]=from);if(!destSafe){diag.rejectedDestination++;return;}diag.safeCandidates++;const interior=moved.reduce((sum,i)=>sum+connectivityNeigh[i].filter(j=>assign[j]===from&&!set.has(j)).length,0);out.push({idx:moved,contact:stat.contact,avgDist:stat.avgDist,interior});}
+  function grow(set){if(explored++>=maxExplore||out.length>=limit)return;if(set.size===size){add(set);return;}const frontier=new Set();for(const u of set)for(const v of connectivityNeigh[u])if(assign[v]===from&&!set.has(v))frontier.add(v);const next=[...frontier].sort((a,b)=>{const ac=boundaryNeigh[a].filter(x=>assign[x]===to).length,bc=boundaryNeigh[b].filter(x=>assign[x]===to).length;if(ac!==bc)return bc-ac;const ad=Math.min(...[...set].map(x=>_dist2(pts[a],pts[x]))),bd=Math.min(...[...set].map(x=>_dist2(pts[b],pts[x])));return ad-bd||a-b;});for(const v of next){const ns=new Set(set);ns.add(v);grow(ns);if(out.length>=limit)return;}}
+  for(const seed of seeds){grow(new Set([seed.i]));if(out.length>=limit)break;}
+  out.sort((a,b)=>b.contact-a.contact||a.avgDist-b.avgDist||a.interior-b.interior||a.idx[0]-b.idx[0]);return out.slice(0,limit);
+}
+function optimizerProfile(name,n){
+  if(name==='blocking-sales')return {name,budget:Math.min(15000,Math.max(8000,n*6)),maxIter:Math.min(30000,n*20),candidateLimit:18,maxSearchNodes:2600,maxStrip:5,noImprove:5,boundaryK:Math.min(18,Math.max(1,n-1))};
+  if(name==='traffic-macro')return {name,budget:Math.min(4000,Math.max(800,n*2)),maxIter:Math.min(14000,n*8),candidateLimit:7,maxSearchNodes:500,maxStrip:2,noImprove:3,boundaryK:Math.min(14,Math.max(1,n-1))};
+  return {name:name||'nested',budget:Math.min(1800,Math.max(300,n)),maxIter:Math.min(8000,n*6),candidateLimit:5,maxSearchNodes:220,maxStrip:2,noImprove:2,boundaryK:Math.min(12,Math.max(1,n-1))};
+}
+function finalConnectivitySafeRebalance(pts,assign,k,neigh,options){
+  const n=assign.length;if(k<=1||n<2)return assign;const opts=typeof options==='number'?{budget:options}:options||{},profile=Object.assign(optimizerProfile(opts.qualityProfile,n),opts),start=Date.now(),budget=Math.max(250,profile.budget||3500),cnt=new Array(k).fill(0);assign.forEach(c=>cnt[c]++);
+  const base=Math.floor(n/k),rem=n-base*k,target=new Array(k).fill(base),order=[...Array(k).keys()].sort((a,b)=>cnt[b]-cnt[a]||a-b);order.slice(0,rem).forEach(c=>target[c]++);
+  const diag=profile.diagnostic||{profile:profile.name||'nested'};Object.assign(diag,{target:target.slice(),optimizerInitial:cnt.slice(),boundaryCandidates:0,safeCandidates:0,rejectedDisconnected:0,rejectedNotAdjacent:0,rejectedDestination:0,clusterAdjacencyEdges:0,propagationPaths:[],successfulMoves:0,successfulCascade:0,successfulTransactions:0,statesRepeated:0,searchNodes:0});
+  const boundaryNeigh=profile.boundaryNeigh||neigh,useWideBoundary=profile.name==='blocking-sales',seenStates=new Set();let bestAssign=assign.slice(),bestCnt=cnt.slice(),bestObj=balanceObjective(cnt,target),iter=0,noImprove=0;const maxIter=profile.maxIter||Math.min(16000,n*10);
+  while(iter++<maxIter&&Date.now()-start<budget){const sig=cnt.join(',')+'|'+assign.join('');if(seenStates.has(sig)){diag.statesRepeated++;break;}seenStates.add(sig);const graph=clusterAdjacency(assign,k,boundaryNeigh),edgeCount=graph.reduce((sum,s)=>sum+s.size,0)/2;diag.clusterAdjacencyEdges=Math.max(diag.clusterAdjacencyEdges,edgeCount);const overs=[...Array(k).keys()].filter(c=>cnt[c]>target[c]).sort((a,b)=>(cnt[b]-target[b])-(cnt[a]-target[a])||a-b),unders=[...Array(k).keys()].filter(c=>cnt[c]<target[c]).sort((a,b)=>(target[b]-cnt[b])-(target[a]-cnt[a])||a-b),choices=[];
+    for(const from of overs)for(const to of unders){const path=shortestClusterPath(graph,from,to);if(path)choices.push({from,to,path,surplus:cnt[from]-target[from],deficit:target[to]-cnt[to]});}
+    choices.sort((a,b)=>a.path.length-b.path.length||b.surplus-a.surplus||b.deficit-a.deficit||a.from-b.from||a.to-b.to);if(!choices.length)break;let accepted=false,acceptedChoice=null,acceptedStrip=0;
+    for(const choice of choices){if(Date.now()-start>=budget)break;const before=balanceObjective(cnt,target),maxStrip=Math.max(1,Math.min(profile.maxStrip||1,choice.surplus,choice.deficit));
+      for(let strip=1;strip<=maxStrip&&!accepted;strip++){const txAssign=assign.slice(),txCnt=cnt.slice();let nodes=0;
+        const walk=p=>{if(Date.now()-start>=budget||nodes++>profile.maxSearchNodes)return false;if(p<0)return objectiveBetter(balanceObjective(cnt,target),before);const from=choice.path[p],to=choice.path[p+1],destinationGraph=useWideBoundary?boundaryNeigh:neigh;if(cnt[from]<=strip||!clusterIsConnected(assign,to,destinationGraph)){diag.rejectedDestination++;return false;}const moveOptions=useWideBoundary?boundaryMoveOptions(assign,from,to,boundaryNeigh,neigh,pts,strip,profile.candidateLimit,diag):boundaryMoveOptionsLegacy(assign,from,to,neigh,strip,profile.candidateLimit,diag);for(const move of moveOptions){diag.searchNodes++;move.idx.forEach(i=>assign[i]=to);cnt[from]-=strip;cnt[to]+=strip;if(walk(p-1))return true;move.idx.forEach(i=>assign[i]=from);cnt[from]+=strip;cnt[to]-=strip;}return false;};
+        if(walk(choice.path.length-2)){accepted=true;acceptedChoice=choice;acceptedStrip=strip;break;}for(let i=0;i<n;i++)assign[i]=txAssign[i];for(let c=0;c<k;c++)cnt[c]=txCnt[c];
+      }
+      if(accepted)break;
+    }
+    if(!accepted){if(++noImprove>=(profile.noImprove||2))break;continue;}noImprove=0;diag.successfulTransactions++;diag.successfulMoves+=acceptedStrip*(acceptedChoice.path.length-1);if(acceptedChoice.path.length>2)diag.successfulCascade++;diag.propagationPaths.push({path:acceptedChoice.path.slice(),strip:acceptedStrip});const after=balanceObjective(cnt,target);if(objectiveBetter(after,bestObj)){bestObj=after;bestAssign=assign.slice();bestCnt=cnt.slice();}if(bestObj[1]===0)break;
+  }
+  for(let i=0;i<n;i++)assign[i]=bestAssign[i];Object.assign(diag,{bestSizes:bestCnt,bestObjective:bestObj,maxDeviation:bestObj[0],totalAbsoluteDeviation:bestObj[1],iterations:iter,runtimeMs:Date.now()-start,converged:bestObj[1]===0});return assign;
+}
+function validateClusterAssignment(assign,k,n,neigh){if(assign.length!==n)throw new Error('Validasi cluster gagal: jumlah outlet berubah.');const cnt=new Array(k).fill(0);for(const c of assign){if(!Number.isInteger(c)||c<0||c>=k)throw new Error('Validasi cluster gagal: label invalid.');cnt[c]++;}if(n>=k&&cnt.some(x=>x===0))throw new Error('Validasi cluster gagal: cluster kosong.');const components=clusterComponents(assign,k,neigh).map(x=>x.length);return {cnt,components};}
 // cluster subset (array of outlet) jadi k grup, balikin array of array
-function clusterGroup(arr,k,tol){
-  k=Math.max(1,Math.min(k,arr.length||1));
+function clusterSizes(assign,k){const cnt=new Array(k).fill(0);assign.forEach(c=>cnt[c]++);return cnt;}
+let clusterDiagnostics=[];
+function getClusterDiagnostics(){return clusterDiagnostics.slice();}
+// cluster subset (array of outlet) jadi k grup, balikin array of array
+function clusterGroup(arr,k,tol,opts){
+  opts=opts||{};k=Math.max(1,Math.min(k,arr.length||1));
   if(k<=1||arr.length<=1)return [arr];
-  const pts=arr.map(o=>[o.coord.lat,o.coord.lng]);
-  // hitung tetangga gap-aware dulu → dipakai utk balancing adjacency-constrained + smoothing + fragments
-  const neigh=buildNeighbors(pts,Math.min(10,arr.length-1),rcGap);
-  let lab=kmeansBalanced(pts,k,tol,neigh);
-  const cap=Math.max(1,Math.ceil(arr.length/k*(1+(tol||0))));
-  lab=contiguitySmooth(pts,lab,k,neigh,cap);
-  lab=fixFragments(lab,k,neigh);            // gabung pecahan kecil di tengah cluster lain
-  lab=contiguitySmooth(pts,lab,k,neigh,0);  // PRIORITAS #1: kontiguitas murni → blok bersih
-  lab=ensureNonEmpty(pts,lab,k,neigh);      // jamin tiap grup terisi (tak ada kombinasi hilang)
-  lab=lightBalance(pts,lab,k,neigh,tol);    // PRIORITAS #2: ratakan seperlunya lewat tepi
-  lab=deIsland(pts,lab,k,neigh);            // basmi sisa titik benar-benar nyasar
-  lab=lightBalance(pts,lab,k,neigh,tol);
-  const groups=Array.from({length:k},()=>[]);
-  arr.forEach((o,i)=>groups[lab[i]].push(o));
-  // urutkan grup by longitude centroid (biar penomoran rapi kiri→kanan)
-  return groups.filter(g=>g.length).sort((a,b)=>{
-    const la=a.reduce((s,o)=>s+o.coord.lng,0)/a.length, lb=b.reduce((s,o)=>s+o.coord.lng,0)/b.length;return la-lb;});
+  const pts=arr.map(o=>[o.coord.lat,o.coord.lng]),profile=optimizerProfile(opts.qualityProfile,arr.length),diag={profile:profile.name,n:arr.length,k,startedAt:Date.now()};
+  const neigh=buildNeighbors(pts,Math.min(10,arr.length-1),rcGap),boundaryNeigh=profile.boundaryK>10?buildNeighbors(pts,profile.boundaryK,rcGap):neigh;
+  let lab=kmeansBalanced(pts,k,tol,neigh);diag.initialSizes=clusterSizes(lab,k);
+  const safeTol=Number.isFinite(tol)?Math.max(0,tol):0,cap=Math.max(1,Math.ceil(arr.length/k*(1+safeTol)));
+  lab=contiguitySmooth(pts,lab,k,neigh,cap);lab=fixFragments(lab,k,neigh);lab=contiguitySmooth(pts,lab,k,neigh,0);lab=ensureNonEmpty(pts,lab,k,neigh);
+  lab=boundaryBalance(pts,lab,k,neigh,safeTol);diag.afterBoundaryBalance=clusterSizes(lab,k);
+  lab=finalContiguityCleanup(pts,lab,k,neigh);diag.afterCleanup=clusterSizes(lab,k);
+  lab=finalConnectivitySafeRebalance(pts,lab,k,neigh,Object.assign({},profile,{boundaryNeigh,diagnostic:diag}));diag.afterRebalance=clusterSizes(lab,k);diag.totalRuntimeMs=Date.now()-diag.startedAt;
+  diag.validation=validateClusterAssignment(lab,k,arr.length,neigh);clusterDiagnostics.push(diag);if(clusterDiagnostics.length>24)clusterDiagnostics.shift();
+  const groups=Array.from({length:k},()=>[]);arr.forEach((o,i)=>groups[lab[i]].push(o));
+  return groups.filter(g=>g.length).sort((a,b)=>{const la=a.reduce((sum,o)=>sum+o.coord.lng,0)/a.length,lb=b.reduce((sum,o)=>sum+o.coord.lng,0)/b.length;return la-lb;});
 }
-function runRouting(){
-  const pool=visible().filter(o=>o.coord);
-  if(pool.length<2){alert('Toko termapping yang tampil kurang dari 2. Tidak bisa di-cluster.');return;}
-  const nS=Math.max(1,parseInt($('rcSales').value)||1);
-  const nR=Math.max(1,parseInt($('rcRute').value)||1);
-  const nC=Math.max(1,parseInt($('rcCycle').value)||1);
-  let tol=parseFloat($('rcTolInput').value); if(!isFinite(tol)||tol<0)tol=10; tol=tol/100;
-  rcGap=$('rcGapChk').checked;
-  // pakai kode cycle ASLI dari data (mis. M2C13, M2C24) sbg nama cycle, bukan C1/C2 generik
-  const origCyc=[...new Set(pool.map(o=>o.cycle0))].filter(v=>v&&v!=='-').sort(rcSort);
-  setLoad(true,'⚙️ Meng-cluster '+pool.length+' toko…',true);
-  setTimeout(()=>{
-    try{
-      const salesG=clusterGroup(pool,nS,tol);
-      const usedSales=new Set();
-      salesG.forEach((sg,si)=>{
-        // ikuti mappingan asli: kasih nama sesuai salesman yg paling banyak nguasain cluster ini.
-        // cuma jatuh ke "SALES n" generik kalau gak ada nama asli / namanya bentrok dgn cluster lain.
-        const cnt={};
-        sg.forEach(o=>{const nm=String(o.sls0||'').trim(); if(nm&&nm!=='-')cnt[nm]=(cnt[nm]||0)+1;});
-        let salesName=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a])[0]||'';
-        if(!salesName||usedSales.has(salesName))salesName='SALES '+(si+1);
-        usedSales.add(salesName);
-        const ruteG=clusterGroup(sg,nR,tol);
-        ruteG.forEach((rg,ri)=>{
-          const ruteName='R'+String(ri+1).padStart(2,'0');
-          const cycG=clusterGroup(rg,nC,tol);
-          cycG.forEach((cg,ci)=>{
-            const cycName=origCyc[ci]||('C'+(ci+1));   // kode cycle asli kalau ada
-            cg.forEach(o=>{ applyEdit(o,salesName,ruteName,cycName);
-              o.edited=(o.sales!==o.sls0||o.rute!==o.rute0||o.cycle!==o.cycle0); });
-          });
-        });
-      });
-      // rebuild dimensi + warna + filter
-      rebuildVals(['sales','rute','cycle'],rcSort);
-      rebuildVals(['kat']);
-      buildRC();
-      FDIMS.forEach(buildDim);buildKec();fillBulkSelectors();
-      updateEditInfo();render();
-      setLoad(false);
-      $('rcInfo').innerHTML='✅ Selesai: '+pool.length+' toko → '+salesG.length+' sales × ~'+nR+' rute × ~'+nC+' cycle. Cek hasilnya, lalu Export Excel.';
-    }catch(err){setLoad(false);alert('Gagal clustering: '+err.message);}
-  },50);
+function validOriginalSalesName(v){
+  const s=String(v==null?'':v).trim();
+  if(!s||s==='-'||/^(NULL|UNDEFINED)$/i.test(s))return false;
+  return !/^⚠?\s*BELUM\s+ADA\s+SALES$/i.test(s);
 }
+function originalSalesNames(pool){
+  const seen=new Set(),names=[];
+  (pool||[]).forEach(o=>{const n=String(o.sls0==null?'':o.sls0).trim();if(validOriginalSalesName(n)&&!seen.has(n)){seen.add(n);names.push(n);}});
+  return names;
+}
+function normalizeSalesRoster(names,n){const out=[],seen=new Set();for(const raw of names||[]){const name=String(raw==null?'':raw).trim();if(!validOriginalSalesName(name)||seen.has(name))continue;seen.add(name);out.push(name);if(out.length>=n)break;}for(let i=1;out.length<n;i++){const name='SALES '+i;if(!seen.has(name)){seen.add(name);out.push(name);}}return out;}
+function activeRosterIsValid(n){return activeSalesRoster.length===n&&new Set(activeSalesRoster).size===n&&activeSalesRoster.every(validOriginalSalesName);}
+function setActiveSalesRoster(names,n){const roster=normalizeSalesRoster(names,n);if(roster.length!==n||new Set(roster).size!==n)throw new Error('Validasi roster gagal: jumlah Sales aktif tidak sesuai.');activeSalesRoster=roster;const el=$('rcSales');if(el)el.value=String(n);return roster.slice();}
+function deriveGlobalSalesRoster(pool,n,originalNames){const order=new Map((originalNames||[]).map((x,i)=>[x,i])),cnt=new Map();for(const o of pool||[]){const name=String(o.sls0==null?'':o.sls0).trim();if(validOriginalSalesName(name))cnt.set(name,(cnt.get(name)||0)+1);}const ranked=[...cnt.keys()].sort((a,b)=>(cnt.get(b)-cnt.get(a))||((order.get(a)??Infinity)-(order.get(b)??Infinity))||a.localeCompare(b));return normalizeSalesRoster(ranked.concat(originalNames||[]),n);}
+function resolveActiveSalesRoster(pool,n,originalNames){return activeRosterIsValid(n)?activeSalesRoster.slice():deriveGlobalSalesRoster(pool,n,originalNames);}
+function setAutoSalesCount(pool,force){
+  if(!force&&rcSalesManual)return;
+  const el=$('rcSales');if(!el)return;
+  el.value=String(Math.max(1,activeSalesRoster.length||originalSalesNames(pool||[]).length));
+}
+function updateClusterMethodUI(){
+  const traffic=clusterMode==='traffic';
+  document.querySelectorAll('.rcmethod').forEach(b=>b.classList.toggle('on',b.dataset.mode===clusterMode));
+  const route=$('rcRute'),label=$('rcRuteLabel');
+  if(route){route.disabled=traffic;if(traffic)route.value='6';}
+  if(label)label.innerHTML=traffic?'Jumlah Rute / Hari <span class="rcfixed">FIXED 6</span>':'Rute / hari per Sales';
+  if($('rcMethodDesc'))$('rcMethodDesc').textContent=traffic
+    ?'Territory dibagi menjadi 6 wilayah harian. Setiap hari seluruh Salesman masuk ke macro-area yang sama, lalu wilayah dibagi kembali per Salesman.'
+    :'Setiap Salesman memiliki territory utama sendiri, lalu territory dibagi menjadi Rute dan Cycle.';
+  if($('rcRunBtn'))$('rcRunBtn').textContent=traffic?'⚙️ Jalankan Cluster Traffic':'⚙️ Jalankan Cluster Blocking';
+  if($('rcInfo'))$('rcInfo').textContent=traffic
+    ?'Traffic: 6 Rute/Hari → Salesman → Cycle. Semua proses berjalan lokal menggunakan koordinat file utama.'
+    :'Blocking: Salesman → Rute → Cycle. Hasil dapat dikembalikan dan di-export.';
+}
+function setClusterMode(mode){clusterMode=mode==='traffic'?'traffic':'blocking';updateClusterMethodUI();}
+
+// Hungarian algorithm untuk assignment maksimum one-to-one. Baris = cluster, kolom = nama original/generic.
+function hungarianMax(score){
+  const n=score.length,m=n?score[0].length:0;if(!n||!m)return [];
+  let mx=-Infinity;score.forEach(r=>r.forEach(v=>{if(v>mx)mx=v;}));
+  const u=new Array(n+1).fill(0),v=new Array(m+1).fill(0),p=new Array(m+1).fill(0),way=new Array(m+1).fill(0);
+  for(let i=1;i<=n;i++){
+    p[0]=i;let j0=0;const minv=new Array(m+1).fill(Infinity),used=new Array(m+1).fill(false);
+    do{
+      used[j0]=true;const i0=p[j0];let delta=Infinity,j1=0;
+      for(let j=1;j<=m;j++)if(!used[j]){
+        const cur=(mx-score[i0-1][j-1])-u[i0]-v[j];
+        if(cur<minv[j]){minv[j]=cur;way[j]=j0;}
+        if(minv[j]<delta||(minv[j]===delta&&(j1===0||j<j1))){delta=minv[j];j1=j;}
+      }
+      for(let j=0;j<=m;j++)if(used[j]){u[p[j]]+=delta;v[j]-=delta;}else minv[j]-=delta;
+      j0=j1;
+    }while(p[j0]!==0);
+    do{const j1=way[j0];p[j0]=p[j1];j0=j1;}while(j0!==0);
+  }
+  const ans=new Array(n).fill(-1);for(let j=1;j<=m;j++)if(p[j])ans[p[j]-1]=j-1;return ans;
+}
+function maxOverlapSalesAssignment(groups,originalNames){
+  const n=groups.length,orig=originalNames.length;if(!n)return [];
+  const m=Math.max(n,orig,1),idx=new Map(originalNames.map((x,i)=>[x,i]));
+  const overlap=Array.from({length:n},()=>new Array(m).fill(0));
+  groups.forEach((g,gi)=>g.forEach(o=>{const j=idx.get(String(o.sls0==null?'':o.sls0).trim());if(j!=null)overlap[gi][j]++;}));
+  // Overlap mutlak menjadi prioritas. Bonus original menjamin nama valid dipakai sebelum generic saat overlap seri.
+  const score=overlap.map((row,i)=>{
+    const order=row.map((w,j)=>({w,j})).sort((a,b)=>b.w-a.w||a.j-b.j),rank=new Array(m);
+    order.forEach((x,r)=>rank[x.j]=m-r);
+    return row.map((w,j)=>w*1000000000+(j<orig?1000000:0)+rank[j]*100+(n-i)*(m-j));
+  });
+  return hungarianMax(score).map(j=>j>=0&&j<orig?originalNames[j]:'SALES '+(j+1));
+}
+function applyClusterChanges(changes){changes.forEach(x=>{applyEdit(x.o,x.sales,x.rute,x.cycle);x.o.edited=(x.o.sales!==x.o.sls0||x.o.rute!==x.o.rute0||x.o.cycle!==x.o.cycle0);});}
+function geographicRouteNames(groups){
+  const labels=groups.map((_,i)=>'R'+String(i+1).padStart(2,'0'));if(!validDepot(depotCoord)||groups.length<5)return labels;
+  const scores=groups.map((g,i)=>{const ds=g.map(o=>_hav([o.coord.lat,o.coord.lng],[depotCoord.lat,depotCoord.lng]));return {i,median:median(ds),mean:ds.reduce((a,b)=>a+b,0)/Math.max(1,ds.length)};}).sort((a,b)=>a.median-b.median||a.mean-b.mean||a.i-b.i);
+  const picked=groups.length>=6?scores.slice(0,2):scores.slice(0,1),out=new Array(groups.length),reserved=groups.length>=6?['R05','R06']:['R05'];picked.forEach((x,j)=>out[x.i]=reserved[j]);
+  const restLabels=labels.filter(x=>!reserved.includes(x));let q=0;for(let i=0;i<groups.length;i++)if(!out[i])out[i]=restLabels[q++];return out;
+}
+function finishCluster(pool,message,started){
+  rebuildVals(FDIMS,rcSort);buildRC();FDIMS.forEach(buildDim);buildKec();fillBulkSelectors();updateEditInfo();render();setLoad(false);
+  const elapsed=((performance.now()-started)/1000).toFixed(2);$('rcInfo').innerHTML=message+' <b>Waktu:</b> '+elapsed+' detik.';
+}
+function setClusterStage(msg){const e=$('loadMsg');if(e)e.innerHTML='<b>⚙️ Menyusun Cluster Terbaik</b><br>'+msg+'<br><small>Proses dapat membutuhkan beberapa detik tergantung jumlah outlet.</small>';}
+function nextPaint(){return new Promise(r=>setTimeout(r,20));}
+async function runBlocking(pool,nS,nR,nC,tol,origCyc,origSales,started){
+  setClusterStage('Membentuk cluster awal, membersihkan fragment, dan menjalankan boundary propagation…');await nextPaint();const salesG=clusterGroup(pool,nS,tol,{qualityProfile:'blocking-sales'}),salesNames=normalizeSalesRoster(maxOverlapSalesAssignment(salesG,origSales),nS),changes=[];
+  for(let si=0;si<salesG.length;si++){setClusterStage('Membersihkan dan menyeimbangkan Rute Sales '+(si+1)+'/'+salesG.length+'…');await nextPaint();const sg=salesG[si],ruteG=clusterGroup(sg,nR,tol,{qualityProfile:'blocking-route'}),routeNames=geographicRouteNames(ruteG);
+    for(let ri=0;ri<ruteG.length;ri++){const rg=ruteG[ri],cycG=clusterGroup(rg,nC,tol,{qualityProfile:'blocking-cycle'});cycG.forEach((cg,ci)=>cg.forEach(o=>changes.push({o,sales:salesNames[si],rute:routeNames[ri],cycle:origCyc[ci]||('C'+(ci+1))})));}}
+  const uniqueSales=[...new Set(changes.map(x=>x.sales))];if(changes.length!==pool.length||new Set(changes.map(x=>x.o)).size!==pool.length)throw new Error('Validasi final gagal: outlet hilang atau duplikat.');if(salesG.length!==nS||salesNames.length!==nS||new Set(salesNames).size!==nS||uniqueSales.length!==nS)throw new Error('Validasi roster Blocking gagal: Sales aktif bukan '+nS+'.');setClusterStage('Memvalidasi hasil…');await nextPaint();pushUndo(pool.map(o=>o.code));applyClusterChanges(changes);setActiveSalesRoster(salesNames,nS);
+  finishCluster(pool,'✅ Selesai: '+pool.length+' toko → '+salesG.length+' Sales × ~'+nR+' Rute × ~'+nC+' Cycle. Penamaan Sales memakai global maximum-overlap one-to-one.'+(validDepot(depotCoord)?' R05/R06 dipilih dari area terdekat Depo setelah geometry final.':''),started);
+}
+async function runTraffic(pool,nS,nC,tol,origCyc,origSales,started){
+  const globalRoster=resolveActiveSalesRoster(pool,nS,origSales);if(globalRoster.length!==nS||new Set(globalRoster).size!==nS)throw new Error('Validasi Traffic gagal: global Sales roster tidak sesuai input.');setClusterStage('Membentuk 6 macro Route, membersihkan fragment, dan menjalankan boundary propagation…');await nextPaint();const macro=clusterGroup(pool,6,tol,{qualityProfile:'traffic-macro'}),routeNames=geographicRouteNames(macro),changes=[],routeRosterChecks=[];let minSales=Infinity,maxSales=0;
+  for(let ri=0;ri<macro.length;ri++){setClusterStage('Menyeimbangkan Sales dan Cycle pada Route '+(ri+1)+'/'+macro.length+'…');await nextPaint();const rg=macro[ri],salesG=clusterGroup(rg,nS,tol,{qualityProfile:'traffic-sales'}),salesNames=maxOverlapSalesAssignment(salesG,globalRoster);minSales=Math.min(minSales,salesG.length);maxSales=Math.max(maxSales,salesG.length);routeRosterChecks.push({route:routeNames[ri],sales:salesNames.slice()});
+    for(let si=0;si<salesG.length;si++){const cycG=clusterGroup(salesG[si],nC,tol,{qualityProfile:'traffic-cycle'});cycG.forEach((cg,ci)=>cg.forEach(o=>changes.push({o,sales:salesNames[si],rute:routeNames[ri],cycle:origCyc[ci]||('C'+(ci+1))})));}}
+  const uniqueSales=[...new Set(changes.map(x=>x.sales))];if(changes.length!==pool.length||new Set(changes.map(x=>x.o)).size!==pool.length)throw new Error('Validasi final gagal: outlet hilang atau duplikat.');if(pool.length>=nS&&(uniqueSales.length!==nS||globalRoster.some(x=>!uniqueSales.includes(x))))throw new Error('Validasi Traffic gagal: global unique Sales bukan '+nS+'.');for(const check of routeRosterChecks)if(check.sales.some(x=>!globalRoster.includes(x))||new Set(check.sales).size!==check.sales.length)throw new Error('Validasi Traffic gagal: Route '+check.route+' memakai roster di luar global roster.');setClusterStage('Memvalidasi hasil…');await nextPaint();pushUndo(pool.map(o=>o.code));applyClusterChanges(changes);setActiveSalesRoster(globalRoster,nS);
+  let warn='';if(macro.length<6)warn=' <b>Catatan:</b> outlet hanya memungkinkan '+macro.length+' macro Rute.';else if(minSales<nS)warn=' <b>Catatan:</b> sebagian Rute hanya memungkinkan '+minSales+'–'+maxSales+' sub-area Sales karena outlet terbatas.';
+  finishCluster(pool,'✅ Selesai: '+pool.length+' toko → '+macro.length+' Rute/Hari × hingga '+nS+' Sales × ~'+nC+' Cycle.'+(validDepot(depotCoord)?' Dua macro area terdekat Depo diberi label R05/R06.':'')+warn,started);
+}
+function runRouting(forceWithoutDepot){if(!validDepot(depotCoord)&&!forceWithoutDepot){pendingCluster=true;$('depotWarn').classList.add('open');return;}runRoutingNow();}
+async function runRoutingNow(){
+  const pool=visible().filter(o=>o.coord);if(pool.length<2){alert('Toko termapping yang tampil kurang dari 2. Tidak bisa di-cluster.');return;}
+  const nS=Math.max(1,parseInt($('rcSales').value)||1),nR=clusterMode==='traffic'?6:Math.max(1,parseInt($('rcRute').value)||1),nC=Math.max(1,parseInt($('rcCycle').value)||1);
+  let tol=parseFloat($('rcTolInput').value);if(!Number.isFinite(tol)||tol<0)tol=0;tol=tol/100;rcGap=$('rcGapChk').checked;const origCyc=[...new Set(pool.map(o=>o.cycle0))].filter(v=>v&&v!=='-').sort(rcSort),origSales=originalSalesNames(pool),started=performance.now();
+  setLoad(true,'⚙️ Menyusun Cluster Terbaik…',true);try{if(clusterMode==='traffic')await runTraffic(pool,nS,nC,tol,origCyc,origSales,started);else await runBlocking(pool,nS,nR,nC,tol,origCyc,origSales,started);}catch(err){setLoad(false);alert('Gagal clustering: '+err.message);}
+}
+function routeOptions(){return [...new Set(OUTLETS.map(o=>o.rute).filter(r=>/^R0[1-6]$/.test(r)))].sort(rcSort);}
+function dayOptionHtml(routes){return '<option value="">Pilih hari...</option>'+routes.map(r=>'<option value="'+r+'">'+routeFriendly(r)+'</option>').join('');}
+function syncDayOptions(){const a=$('dayA').value,b=$('dayB').value;[...$('dayA').options].forEach(o=>o.disabled=!!b&&o.value===b);[...$('dayB').options].forEach(o=>o.disabled=!!a&&o.value===a);}
+function openDayModal(){if(viewerMode)return;const routes=routeOptions();if(routes.length<2)return;const rows=$('dayRows');rows.innerHTML=routes.map(r=>{const sc=routeDepotScore(r),n=OUTLETS.filter(o=>o.rute===r).length;return '<div class="dayrow"><i class="daydot" style="background:'+(colorMaps.rute[r]||'#888')+'"></i><b>'+routeFriendly(r)+'</b><span>'+n+' outlet'+(sc?' · ±'+sc.median.toLocaleString('id-ID',{maximumFractionDigits:1})+' km':'')+'</span></div>';}).join('');const html=dayOptionHtml(routes);$('dayA').innerHTML=html;$('dayB').innerHTML=html;$('dayA').value='';$('dayB').value='';dayPreviewState=null;syncDayOptions();$('daySwap').disabled=true;$('dayPreviewText').textContent='Pilih dua hari untuk preview.';$('dayModal').classList.remove('hidden');document.body.classList.add('day-panel-open');render();}
+function updateDayPreview(changed){let a=$('dayA').value,b=$('dayB').value;if(a&&b&&a===b){if(changed==='a')$('dayB').value='';else $('dayA').value='';a=$('dayA').value;b=$('dayB').value;}syncDayOptions();const valid=!!a&&!!b&&a!==b;$('daySwap').disabled=!valid;dayPreviewState=valid?{a,b}:null;$('dayPreviewText').innerHTML=valid?('<b>Preview: '+routeFriendly(a)+' ↔ '+routeFriendly(b)+'</b><br>Data belum berubah.'):'Pilih dua hari untuk preview.';render();}
+function closeDayPanel(){const had=!!dayPreviewState;dayPreviewState=null;$('dayModal').classList.add('hidden');document.body.classList.remove('day-panel-open');if(had)render();}
+function swapDaysGlobal(){if(viewerMode)return;const a=$('dayA').value,b=$('dayB').value;if(!a||!b||a===b)return;const affected=OUTLETS.filter(o=>o.rute===a||o.rute===b);if(!affected.length)return;pushUndo(affected.map(o=>o.code));affected.forEach(o=>applyEdit(o,o.sales,o.rute===a?b:a,o.cycle));dayPreviewState=null;rebuildVals(FDIMS,rcSort);buildRC();FDIMS.forEach(buildDim);fillBulkSelectors();$('dayModal').classList.add('hidden');document.body.classList.remove('day-panel-open');render();}
 // sort yang ngerti angka: SALES 2 < SALES 10, R2 < R10
 function rcSort(a,b){const na=String(a).match(/\d+/),nb=String(b).match(/\d+/);
   const pa=String(a).replace(/\d+/,''),pb=String(b).replace(/\d+/,'');
   if(pa===pb&&na&&nb)return (+na[0])-(+nb[0]);
   return String(a).localeCompare(String(b));}
-function undoRouting(){ if(!OUTLETS.some(o=>o.edited)){return;}
+function undoRouting(){ if(!OUTLETS.some(o=>o.edited)&&!activeSalesRoster.length){return;}
   if(!confirm('Kembalikan semua sales/rute/cycle ke data asli?'))return;
-  undoAllEdits();
-  rebuildVals(['sales','rute','cycle','kat'],rcSort);
+  undoAllEdits();activeSalesRoster=[];
+  rebuildVals(FDIMS,rcSort);
   buildRC();FDIMS.forEach(buildDim);buildKec();fillBulkSelectors();render();
   $('rcInfo').textContent='Sudah dikembalikan ke data asli.';
 }
@@ -2316,10 +2499,10 @@ function toggleRoad(){ routeViaRoad=!routeViaRoad;
 function applyEdit(o,sales,rute,cycle){o.sales=sales;o.rute=rute;o.cycle=cycle;o.kat=katOf(sales);o.rc=(rute&&rute!=='-'?rute:'?')+' · '+(cycle&&cycle!=='-'?cycle:'?');
   if(o.row){const C=TGT_COLS;
     if(C.sls>=0)o.row[C.sls]=sales;
-    if(C.kdsls>=0&&SALES_CODE[sales]!=null)o.row[C.kdsls]=SALES_CODE[sales];
+    if(C.kdsls>=0)o.row[C.kdsls]=SALES_CODE[sales]!=null?SALES_CODE[sales]:'';
     if(C.rute>=0)o.row[C.rute]=rute;
     if(C.cyc>=0)o.row[C.cyc]=cycle;}}
-function saveEdit(){const o=OUTLETS.find(x=>x.code===editCode);if(!o){closeEdit();return;}
+function saveEdit(){if(viewerMode)return;const o=OUTLETS.find(x=>x.code===editCode);if(!o){closeEdit();return;}
   pushUndo([editCode]);                                // simpan kondisi sebelum diubah → bisa di-undo
   applyEdit(o,$('eSales').value,$('eRute').value,$('eCycle').value);
   o.edited=(o.sales!==o.sls0||o.rute!==o.rute0||o.cycle!==o.cycle0);
@@ -2327,19 +2510,18 @@ function saveEdit(){const o=OUTLETS.find(x=>x.code===editCode);if(!o){closeEdit(
 function revertEdit(){const o=OUTLETS.find(x=>x.code===editCode);if(!o){closeEdit();return;}
   applyEdit(o,o.sls0,o.rute0,o.cycle0);o.edited=false;closeEdit();refreshCounts();render();}
 function refreshCounts(){FDIMS.forEach(dim=>{document.querySelectorAll('.srow[data-dim="'+dim+'"]').forEach(rw=>{
-  const cnt=OUTLETS.filter(o=>o[dim]===rw.dataset.v).length;const ct=rw.querySelector('.ct');if(ct)ct.textContent=cnt;});});}
-function updateEditInfo(){const moved=OUTLETS.filter(o=>o.edited).length;const del=OUTLETS.filter(o=>o.ptDel).length;const el=$('editInfo');if(!el)return;
-  el.classList.toggle('hidden',moved===0&&del===0);const c=$('editCount');if(c)c.textContent=moved;
-  const dl=$('delCount');if(dl)dl.textContent=del;const dw=$('delInfo');if(dw)dw.classList.toggle('hidden',del===0);}
+  const cnt=OUTLETS.filter(o=>o.coord&&o[dim]===rw.dataset.v).length;const ct=rw.querySelector('.ct');if(ct)ct.textContent=cnt;});});}
+function updateEditInfo(){}
 function undoAllEdits(){OUTLETS.forEach(o=>{
     if(o.edited){applyEdit(o,o.sls0,o.rute0,o.cycle0);o.edited=false;}
     if(o.ptDel){const c=o._savedCoord||COORD[o.key];if(c)o.coord=c;o.ptDel=false;}
-  });UNDO.length=0;REDO.length=0;updateUndoBtn();refreshCounts();render();updateEditInfo();}
+  });activeSalesRoster=[];UNDO.length=0;REDO.length=0;updateUndoBtn();refreshCounts();render();updateEditInfo();}
 /* ===== UNDO/REDO PER-PERUBAHAN: simpan snapshot tiap aksi, balikin yg terakhir ===== */
 const UNDO=[];
 const REDO=[];
-function snapOf(codes){const snap=[];codes.forEach(code=>{const o=OUTLETS.find(x=>x.code===code); if(o)snap.push({code,sales:o.sales,rute:o.rute,cycle:o.cycle,edited:o.edited,coord:o.coord,ptDel:!!o.ptDel});});return snap;}
-function applySnap(snap){snap.forEach(s=>{const o=OUTLETS.find(x=>x.code===s.code); if(o){applyEdit(o,s.sales,s.rute,s.cycle); o.edited=s.edited; o.coord=s.coord; o.ptDel=s.ptDel;}});}
+function snapOf(codes){const snap=[];codes.forEach(code=>{const o=OUTLETS.find(x=>x.code===code); if(o)snap.push({code,sales:o.sales,rute:o.rute,cycle:o.cycle,edited:o.edited,coord:o.coord,ptDel:!!o.ptDel});});snap.activeSalesRoster=activeSalesRoster.slice();return snap;}
+function applySnap(snap){snap.forEach(s=>{const o=OUTLETS.find(x=>x.code===s.code); if(o){applyEdit(o,s.sales,s.rute,s.cycle); o.edited=s.edited; o.coord=s.coord; o.ptDel=s.ptDel;}});activeSalesRoster=normalizeSalesRoster(snap.activeSalesRoster||[],(snap.activeSalesRoster||[]).length);}
+function refreshAfterHistory(){rebuildVals(FDIMS,rcSort);buildRC();FDIMS.forEach(buildDim);buildKec();fillBulkSelectors();refreshCounts();render();if(typeof updateEditInfo==='function')updateEditInfo();updateUndoBtn();}
 function pushUndo(codes){
   const snap=snapOf(codes);
   if(snap.length){UNDO.push(snap); if(UNDO.length>80)UNDO.shift(); REDO.length=0; updateUndoBtn();}
@@ -2348,18 +2530,15 @@ function undoLast(){
   const snap=UNDO.pop(); if(!snap){updateUndoBtn();return;}
   REDO.push(snapOf(snap.map(s=>s.code)));   // simpan kondisi SEKARANG dulu → bisa di-redo
   applySnap(snap);
-  refreshCounts(); render(); if(typeof updateEditInfo==='function')updateEditInfo(); updateUndoBtn();
+  refreshAfterHistory();
 }
 function redoLast(){
   const snap=REDO.pop(); if(!snap){updateUndoBtn();return;}
   UNDO.push(snapOf(snap.map(s=>s.code)));   // simpan kondisi SEKARANG dulu → bisa di-undo lagi
   applySnap(snap);
-  refreshCounts(); render(); if(typeof updateEditInfo==='function')updateEditInfo(); updateUndoBtn();
+  refreshAfterHistory();
 }
-function updateUndoBtn(){
-  const uHide=UNDO.length===0, rHide=REDO.length===0;
-  [['undoLast',uHide],['undoFloat',uHide],['redoLast',rHide],['redoFloat',rHide]].forEach(([id,hide])=>{const el=$(id);if(el)el.classList.toggle('hidden',hide);});
-}
+function updateUndoBtn(){const u=$('undoFloat'),r=$('redoFloat');if(u)u.disabled=UNDO.length===0;if(r)r.disabled=REDO.length===0;}
 /* ===== BULK REASSIGN (multi-pick) ===== */
 const KEEP='\u0000keep';   // sentinel: jangan ubah field ini
 /* --- AUTO-ISI Sales/Rute/Cycle dari grup legend yang dikunci --- */
@@ -2403,7 +2582,7 @@ function updateSelBar(){const bar=$('selBar');if(!bar)return;const n=SEL.size;
   if(typeof legendApply==='function')legendApply();   // update proyeksi "base + dipilih = total"
   if(typeof autoFillBulkFromLegend==='function')autoFillBulkFromLegend();
   }
-function applyBulk(){
+function applyBulk(){if(viewerMode)return;
   if(!SEL.size)return;
   const s=$('bulkSales').value,r=$('bulkRute').value,c=$('bulkCycle').value;
   if(s===KEEP&&r===KEEP&&c===KEEP){alert('Pilih minimal satu yang mau diubah (Sales / Rute / Cycle).');return;}
@@ -2414,7 +2593,7 @@ function applyBulk(){
     o.edited=(o.sales!==o.sls0||o.rute!==o.rute0||o.cycle!==o.cycle0); n++; });
   SEL.clear(); fillBulkSelectors(); refreshCounts(); render(); updateUndoBtn();
 }
-function bulkDelete(){
+function bulkDelete(){if(viewerMode)return;
   if(!SEL.size)return;
   const codes=[...SEL].filter(code=>{const o=OUTLETS.find(x=>x.code===code);return o&&o.coord;});
   if(!codes.length){alert('Titik yang dipilih sudah tidak punya koordinat.');return;}
@@ -2426,9 +2605,7 @@ function bulkDelete(){
 /* ===== WIRING ===== */
 function setLoad(on,msg,busy){$('loader').style.display=on?'flex':'none';if(msg!=null)$('loadMsg').innerHTML=msg;var sp=$('loadSpin'),lg=$('loadLogo');if(sp)sp.style.display=busy?'block':'none';if(lg)lg.style.display=busy?'none':'block';}
 function tryBuild(){
-  if(TARGET.length&&Object.keys(COORD).length){build();setLoad(false);}
-  else if(TARGET.length)setLoad(true,'✅ Data outlet ok ('+TARGET.length+' outlet). Tinggal upload file KOORDINAT.');
-  else if(Object.keys(COORD).length)setLoad(true,'✅ Koordinat ok. Tinggal upload Form JKS / template.');
+  if(TARGET.length){build();setLoad(false);}
 }
 function wireDrop(dropId,inputId,handler){
   const drop=$(dropId),inp=$(inputId);drop.onclick=()=>inp.click();
@@ -2438,50 +2615,48 @@ function wireDrop(dropId,inputId,handler){
   drop.addEventListener('drop',async e=>{const f=e.dataTransfer.files[0];if(f){const ok=await handler(f);if(ok!==false)tryBuild();}});
 }
 wireDrop('dropTarget','fileTarget',loadTarget);
-wireDrop('dropCoord','fileCoord',loadCoord);
 $('seg').onclick=e=>{const b=e.target.closest('button');if(!b)return;colorMode=b.dataset.m;render();};
 $('search').oninput=e=>{F.search=e.target.value;render();};
 $('kecSel').onchange=e=>{F.kec=e.target.value;render();};
 document.querySelectorAll('.chip[data-dim]').forEach(btn=>btn.onclick=()=>{
   const dim=btn.dataset.dim;F[dim]=btn.dataset.act==='all'?new Set(vals[dim]):new Set();
   document.querySelectorAll('.srow[data-dim="'+dim+'"]').forEach(r=>r.classList.toggle('off',!F[dim].has(r.dataset.v)));render();});
-$('resetBtn').onclick=()=>{FDIMS.forEach(d=>F[d]=new Set(vals[d]));F.kec='';F.search='';
-  $('search').value='';$('kecSel').value='';document.querySelectorAll('.srow').forEach(r=>r.classList.remove('off'));render();};
 function isMobile(){return window.matchMedia('(max-width:860px)').matches;}
-function openPanel(b){$('sidePanel').classList.toggle('open',b);$('backdrop').classList.toggle('show',b);}
-$('mFilter').onclick=()=>openPanel(!$('sidePanel').classList.contains('open'));
+function sidebarIsOpen(){return isMobile()?$('sidePanel').classList.contains('open'):!document.body.classList.contains('sidebar-closed');}
+function openPanel(b){if(isMobile()){$('sidePanel').classList.toggle('open',b);$('backdrop').classList.toggle('show',b);}else{document.body.classList.toggle('sidebar-closed',!b);}const rail=$('sidebarRail'),arrow=$('sidebarRailArrow');if(rail){rail.setAttribute('aria-expanded',String(!!b));rail.setAttribute('aria-label',b?'Tutup sidebar':'Buka sidebar');}if(arrow)arrow.textContent=b?'◀':'▶';setTimeout(()=>{if(map)map.invalidateSize();},280);}
+$('sidebarRail').onclick=()=>openPanel(!sidebarIsOpen());
 $('backdrop').onclick=()=>openPanel(false);
 $('mClose').onclick=()=>openPanel(false);
 $('focusBtn').onclick=doFit;
 $('changeBtn').onclick=resetApp;
 $('tplBtn').onclick=genFormTemplate;
-$('unmapHead').onclick=()=>{$('unmapHead').classList.toggle('open');$('unmapWrap').classList.toggle('open');};
-$('dlUnmap').onclick=()=>downloadBlob('outlet_belum_termapping.csv','\ufeff'+toCSV(window._unmapped||[],
-  [{h:'KD_OUTLET',f:o=>o.code},{h:'NAMA_OUTLET',f:o=>o.name},{h:'ALAMAT',f:o=>o.addr},{h:'KECAMATAN',f:o=>o.kec},{h:'NAMA_SLS',f:o=>o.sales},{h:'LATITUDE',f:()=>''},{h:'LONGITUDE',f:()=>''}]),'text/csv;charset=utf-8');
 $('exportBtn').onclick=e=>{e.stopPropagation();$('exportMenu').classList.toggle('open');};
 document.addEventListener('click',e=>{if(!e.target.closest('.rgt'))$('exportMenu').classList.remove('open');});
 $('expXlsx').onclick=()=>{$('exportMenu').classList.remove('open');exportXLSX();};
 $('expTpl').onclick=()=>{$('exportMenu').classList.remove('open');genCoordExport();};
 $('expHtml').onclick=()=>{$('exportMenu').classList.remove('open');exportHTML();};
+$('invalidPointPill').onclick=openInvalidPointModal;$('invalidPointClose').onclick=closeInvalidPointModal;$('invalidPointModal').onclick=e=>{if(e.target.id==='invalidPointModal')closeInvalidPointModal();};
 $('eSave').onclick=saveEdit;$('eRevert').onclick=revertEdit;$('eCancel').onclick=closeEdit;
 $('eDelPoint').onclick=()=>{if(!editCode)return;const act=$('eDelPoint').dataset.act;if(act==='restore')restorePoint(editCode);else deletePoint(editCode);};
 $('editModal').onclick=e=>{if(e.target.id==='editModal')closeEdit();};
-$('undoAll').onclick=undoAllEdits;
-$('undoLast').onclick=undoLast;
 $('undoFloat').onclick=undoLast;
-$('redoLast').onclick=redoLast;
 $('redoFloat').onclick=redoLast;
 document.addEventListener('keydown',e=>{
-  if(!(e.ctrlKey||e.metaKey))return;
+  if(viewerMode||!(e.ctrlKey||e.metaKey))return;
   const k=e.key.toLowerCase();
   if(k==='z'&&!e.shiftKey){e.preventDefault();undoLast();}
   else if((k==='y')||(k==='z'&&e.shiftKey)){e.preventDefault();redoLast();}
 });
-$('selModeBtn').onclick=()=>setSelMode(!selMode);
+$('depotBtn').onclick=openDepotModal;$('depotClose').onclick=closeDepotModal;$('depotPick').onclick=beginDepotPick;$('depotSave').onclick=saveDepotInput;$('depotDelete').onclick=()=>{clearDepot();closeDepotModal();render();};$('depotModal').onclick=e=>{if(e.target.id==='depotModal')closeDepotModal();};
+$('warnSetDepot').onclick=()=>{$('depotWarn').classList.remove('open');openDepotModal();};$('warnContinue').onclick=()=>{$('depotWarn').classList.remove('open');pendingCluster=false;runRouting(true);};
+$('dayBtn').onclick=openDayModal;$('dayClose').onclick=closeDayPanel;$('dayCancel').onclick=closeDayPanel;$('daySwap').onclick=swapDaysGlobal;$('dayA').onchange=()=>updateDayPreview('a');$('dayB').onchange=()=>updateDayPreview('b');
 $('lassoBtn').onclick=()=>setLassoMode(!lassoMode);
-$('rcRunBtn').onclick=runRouting;
+$('rcRunBtn').onclick=()=>runRouting(false);
 $('rcUndoBtn').onclick=undoRouting;
+$('rcMethods').onclick=e=>{const b=e.target.closest('.rcmethod');if(b)setClusterMode(b.dataset.mode);};
+$('rcSales').addEventListener('input',()=>{rcSalesManual=true;});
 $('clusterBtn').onclick=()=>{const f=$('clusterFloat'),show=f.classList.contains('hidden');
+  if(show){setAutoSalesCount(visible().filter(o=>o.coord),false);updateClusterMethodUI();}
   f.classList.toggle('hidden',!show);$('clusterBtn').classList.toggle('on',show);};
 $('cfClose').onclick=()=>{$('clusterFloat').classList.add('hidden');$('clusterBtn').classList.remove('on');};
 $('rcRouteBtn').onclick=toggleRoute;
