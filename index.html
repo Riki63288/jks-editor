@@ -958,7 +958,19 @@ select.search{appearance:none;cursor:pointer}
 .edelpoint.restore{border-color:#22b8a0;color:#22b8a0}
 .edelpoint.restore:hover{background:rgba(34,184,160,.12)}
 .loadlogo{height:62px;width:auto;margin-bottom:6px;filter:drop-shadow(0 3px 10px rgba(0,0,0,.45))}
+/* --- REV: Road Intelligence + Cycle roster + Atur Hari per Salesman --- */
+.rccycleauto{margin-top:9px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#101a17;font-size:12px;color:var(--muted)}
+.rccycleauto b{color:var(--accent)}
+.rccyclelist{margin-top:4px;font-size:11.5px;color:var(--ink);line-height:1.5;word-break:break-word}
+#rcRoadHint{margin-top:2px;font-size:11.5px}
+#rcRoadStatus{margin-top:8px}
+#rcRoadStatus.hidden{display:none}
+.daynote{padding:8px 2px;font-size:12px;color:var(--muted)}
+#daySalesWrap.hidden{display:none}
 </style>
+<script>window.__TURF_LOAD__='pending';</script>
+<script src="https://unpkg.com/@turf/turf@6.5.0/turf.min.js" crossorigin="anonymous"
+        onload="window.__TURF_LOAD__='ok'" onerror="window.__TURF_LOAD__='error'"></script>
 <script id="embedded-data"></script>
 </head>
 <body>
@@ -1044,10 +1056,14 @@ select.search{appearance:none;cursor:pointer}
         <div class="rcgrid">
           <label>Jumlah Salesman</label><input type="number" id="rcSales" min="1" max="50" value="1">
           <label id="rcRuteLabel">Rute / hari per Sales</label><input type="number" id="rcRute" min="1" max="30" value="6">
-          <label>Cycle per Rute</label><input type="number" id="rcCycle" min="1" max="12" value="2">
+          <label>Cycle per Rute</label><input type="number" id="rcCycle" min="1" max="12" value="2" disabled title="Cycle mengikuti roster Cycle dari data sumber (AUTO)">
           <label>Toleransi kerataan (%)</label><input type="number" id="rcTolInput" min="0" max="200" step="1" value="0">
         </div>
+        <div class="rccycleauto" id="rcCycleAuto">Cycle <b>AUTO</b> · 0<div class="rccyclelist" id="rcCycleList">Belum ada data.</div></div>
         <label class="rccheck"><input type="checkbox" id="rcGapChk" checked> Pertimbangkan barrier (gap-aware, hindari motong sungai/celah)</label>
+        <label class="rccheck"><input type="checkbox" id="rcRoadChk"> Road Intelligence — Valhalla</label>
+        <div class="rcdesc" id="rcRoadHint">Validasi island Level 1 dengan spatial analysis + jaringan jalan.</div>
+        <div class="rcinfo hidden" id="rcRoadStatus"></div>
         <button class="rcrun" id="rcRunBtn">⚙️ Jalankan Cluster Blocking</button>
         <button class="rcundo" id="rcUndoBtn">↩ Kembalikan ke data asli</button>
         <button class="rcrun" id="rcRouteBtn" style="margin-top:9px;background:#162420;color:var(--ink);border:1px solid var(--line)">🛣️ Tampilkan rute kunjungan</button>
@@ -1059,7 +1075,7 @@ select.search{appearance:none;cursor:pointer}
     <div class="emodal" id="invalidPointModal"><div class="ebox invalidbox"><div class="ehead"><div><div class="etitle">⚠️ Titik Tidak Valid</div><div class="ecode" id="invalidPointSummary">0 outlet</div></div><button class="eclose" id="invalidPointClose">✕</button></div><p class="invalidcopy">Outlet berikut tidak ditampilkan di peta karena Latitude / Longitude pada file sumber tidak dapat digunakan.</p><div class="invalidtablewrap"><table class="invalidtable"><thead><tr><th>Kode Outlet</th><th>Nama Toko</th><th>Salesman As Is</th><th>Latitude</th><th>Longitude</th></tr></thead><tbody id="invalidPointRows"></tbody></table></div></div></div>
     <div class="emodal" id="depotModal"><div class="ebox"><div class="ehead"><div><div class="etitle">🏠 Lokasi Depo</div><div class="ecode" id="depotStatus">Belum ditentukan (opsional)</div></div><button class="eclose" id="depotClose">✕</button></div><button class="esave depotpick" id="depotPick">📍 Pilih di Peta</button><label class="elbl">Latitude</label><input class="esel" id="depotLat" inputmode="decimal" placeholder="-6.200000"><label class="elbl">Longitude</label><input class="esel" id="depotLng" inputmode="decimal" placeholder="106.816666"><div class="ecode depoterr" id="depotErr"></div><div class="ebtns"><button class="erev" id="depotDelete">Hapus Lokasi</button><button class="esave" id="depotSave">Simpan Lokasi</button></div></div></div>
     <div class="emodal" id="depotWarn"><div class="ebox"><div class="etitle">🏠 Lokasi Depo Belum Ditentukan</div><p class="modalcopy">Cluster tetap dapat dijalankan tanpa lokasi Depo. Namun sistem tidak dapat memprioritaskan R05 (Jumat) dan R06 (Sabtu) agar berada dekat dengan Depo.</p><div class="warnbtns"><button class="erev" id="warnSetDepot">🏠 Atur Lokasi Depo</button><button class="esave" id="warnContinue">Tetap Jalankan Tanpa Depo</button></div></div></div>
-    <div class="daypanel hidden" id="dayModal"><div class="ehead"><div><div class="etitle">🔄 Atur / Tukar Hari</div><div class="ecode">Global untuk seluruh dataset · tanpa recluster</div></div><button class="eclose" id="dayClose">✕</button></div><div id="dayRows" class="dayrows"></div><label class="elbl">Tukar Hari A</label><select class="esel" id="dayA"></select><label class="elbl">Dengan Hari B</label><select class="esel" id="dayB"></select><div class="daypreview" id="dayPreviewText">Pilih dua hari untuk preview.</div><div class="dayactions"><button class="erev" id="dayCancel">Batal</button><button class="esave dayapply" id="daySwap">Tukar Hari</button></div></div>
+    <div class="daypanel hidden" id="dayModal"><div class="ehead"><div><div class="etitle">🔄 Atur / Tukar Hari</div><div class="ecode" id="dayScopeNote">Global untuk seluruh dataset · tanpa recluster</div></div><button class="eclose" id="dayClose">✕</button></div><div id="daySalesWrap" class="hidden"><label class="elbl">Salesman</label><select class="esel" id="daySales"></select></div><div id="dayRows" class="dayrows"></div><label class="elbl">Tukar Hari A</label><select class="esel" id="dayA"></select><label class="elbl">Dengan Hari B</label><select class="esel" id="dayB"></select><div class="daypreview" id="dayPreviewText">Pilih dua hari untuk preview.</div><div class="dayactions"><button class="erev" id="dayCancel">Batal</button><button class="esave dayapply" id="daySwap">Tukar Hari</button></div></div>
     <div class="selbar" id="selBar">
       <div class="selcount">✓ <b id="selCount">0</b> outlet dipilih</div>
       <div class="selproj" id="selProj"></div>
@@ -1099,6 +1115,9 @@ let rcGap=true,clusterMode='blocking',rcSalesManual=false;
 let activeSalesRoster=[];
 let depotCoord=null,depotMarker=null,depotPickMode=false,pendingCluster=false;
 let viewerMode=false,dayPreviewState=null;
+let lastSuccessfulClusterMode=null;          // 'blocking' | 'traffic' | null  (hanya di-set setelah clustering sukses)
+let dayFocusSales=null,dayViewBackup=null;   // state sementara Atur Hari Blocking (per Salesman)
+let SOURCE_CYCLE_ROSTER=[];                  // roster Cycle canonical dari SELURUH dataset sumber
 const ROUTE_DAYS={R01:'Senin',R02:'Selasa',R03:'Rabu',R04:'Kamis',R05:'Jumat',R06:'Sabtu'};
 function routeDay(v){return ROUTE_DAYS[String(v||'').toUpperCase()]||'';}
 function routeFriendly(v){const d=routeDay(v);return d?(v+' · '+d):v;}
@@ -1294,10 +1313,12 @@ function buildRC(){
   colorMaps.rc={};vals.rc.forEach((v,i)=>colorMaps.rc[v]=RC_PAL[i%RC_PAL.length]);
 }
 function build(){
-  activeSalesRoster=[];
+  activeSalesRoster=[];lastSuccessfulClusterMode=null;dayFocusSales=null;dayViewBackup=null;
+  SOURCE_CYCLE_ROSTER=[];resetValhallaSession();valSetStatus('',false);
   OUTLETS=TARGET.map(t=>({...t,coord:COORD[t.key]||null}));
   rebuildInvalidSourcePoints();
   OUTLETS.forEach(o=>{o.rc=(o.rute&&o.rute!=='-'?o.rute:'?')+' · '+(o.cycle&&o.cycle!=='-'?o.cycle:'?');});
+  buildSourceCycleRoster();                                  // roster Cycle dibangun ulang tiap file baru
   rebuildVals(FDIMS);
   buildRC();
   F.kec='';F.search='';
@@ -1320,6 +1341,7 @@ function buildDim(dim){
 function setTitle(d){d=(d||'').toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());const t=d?('Peta JKS '+d):'Peta JKS';$('brandTitle').textContent=t;document.title=t;}
 function resetApp(){
   TARGET=[];COORD={};OUTLETS=[];DEPO='';INVALID_SOURCE_POINTS=[];activeSalesRoster=[];rcSalesManual=false;clusterMode='blocking';clearDepot();
+  lastSuccessfulClusterMode=null;dayFocusSales=null;dayViewBackup=null;dayPreviewState=null;SOURCE_CYCLE_ROSTER=[];updateCycleRosterUI();resetValhallaSession();valSetStatus('',false);
   if(fg)fg.clearLayers();
   SEL.clear();if(lassoMode)setLassoMode(false);updateSelBar();
   $('fileTarget').value='';
@@ -1347,6 +1369,9 @@ function updateColorVisuals(){
   $('colorHint').innerHTML='Warna manual per <b style="color:var(--ink)">'+DIMS[e].label+'</b>';
 }
 function visible(){
+  // Fokus sementara Atur Hari (Blocking): peta hanya menampilkan outlet Salesman terpilih.
+  // Filter permanen user TIDAK diubah — hanya dilewati selama panel aktif, lalu dipulihkan.
+  if(dayFocusSales)return OUTLETS.filter(o=>o.sales===dayFocusSales);
   const q=F.search.trim().toLowerCase();
   return OUTLETS.filter(o=>{
     if(!F.sales.has(o.sales))return false;if(!F.rute.has(o.rute))return false;if(!F.cycle.has(o.cycle))return false;
@@ -1893,7 +1918,7 @@ function exportHTML(){
     omset:o.omset||0,ec:o.ec||0,
     ptDel:!!o.ptDel,_savedCoord:o._savedCoord||null,
     sls0:o.sls0,rute0:o.rute0,cycle0:o.cycle0,rawLat:o.rawLat,rawLng:o.rawLng,sourceCoordValid:o.sourceCoordValid===true}));
-  const E={outlets:slim,vals:vals,colorMaps:colorMaps,colorMode:colorMode,clusterMode:clusterMode,depo:DEPO,depotCoord:depotCoord,viewerMode:true,activeSalesRoster:activeSalesRoster,
+  const E={outlets:slim,vals:vals,colorMaps:colorMaps,colorMode:(dayViewBackup?dayViewBackup.colorMode:colorMode),clusterMode:clusterMode,depo:DEPO,depotCoord:depotCoord,viewerMode:true,activeSalesRoster:activeSalesRoster,
     header:TGT_HEADER,cols:TGT_COLS,salescode:SALES_CODE};
   const json=JSON.stringify(E).replace(/</g,'\\u003c');
   const filled='<script id="embedded-data">window.EMBEDDED='+json+';<\/script>';
@@ -1910,6 +1935,8 @@ function buildFromEmbedded(E){
     if(o.omset==null||!isFinite(o.omset))o.omset=0; if(o.ec==null||!isFinite(o.ec))o.ec=0;
     if(typeof o.sourceCoordValid!=='boolean')o.sourceCoordValid=sourceCoordinateValid(o.rawLat,o.rawLng);});
   rebuildInvalidSourcePoints();
+  lastSuccessfulClusterMode=null;dayFocusSales=null;dayViewBackup=null;
+  buildSourceCycleRoster();
   rebuildVals(FDIMS,rcSort);buildRC();
   F.kec='';F.search='';
   FDIMS.forEach(buildDim); buildKec(); fillBulkSelectors(); SEL.clear();
@@ -1918,7 +1945,7 @@ function buildFromEmbedded(E){
   $('changeBtn').style.display='none';  /* file hasil export tidak perlu opsi muat depo lain */
   initMap(); syncDepotMarker();if(viewerMode)applyViewerMode();fitted=false; render(); setLoad(false);
 }
-function applyViewerMode(){document.body.classList.add('viewer-mode');dayPreviewState=null;SEL.clear();if(lassoMode)setLassoMode(false);$('editModal').classList.remove('open');$('clusterFloat').classList.add('hidden');$('dayModal').classList.add('hidden');}
+function applyViewerMode(){document.body.classList.add('viewer-mode');dayPreviewState=null;dayExitFocus();SEL.clear();if(lassoMode)setLassoMode(false);$('editModal').classList.remove('open');$('clusterFloat').classList.add('hidden');$('dayModal').classList.add('hidden');}
 /* ===== EDIT JKS (pindahkan toko antar sales/rute/cycle) ===== */
 let editCode=null;
 function fillSel(id,dim,arr,cur){const s=$(id);s.innerHTML='';(arr||[]).slice().sort(sortWithBlankLast).forEach(v=>{const op=document.createElement('option');op.value=v;op.textContent=displayDimension(dim,v);if(v===cur)op.selected=true;s.appendChild(op);});}
@@ -2267,6 +2294,1635 @@ function clusterSizes(assign,k){const cnt=new Array(k).fill(0);assign.forEach(c=
 let clusterDiagnostics=[];
 function getClusterDiagnostics(){return clusterDiagnostics.slice();}
 // cluster subset (array of outlet) jadi k grup, balikin array of array
+/* =========================================================================
+   BUSINESS-AWARE CYCLE ENGINE
+   Roster Cycle dibangun dari SELURUH dataset sumber (bukan visible()/filter/
+   subset clustering). Label canonical: M1, M2C13, M2C24, M4C01..M4C04.
+   Label lain di luar format resmi TIDAK dihapus & TIDAK diubah jadi C1/C2/C3.
+   ========================================================================= */
+const CYCLE_CANON_ORDER=['M1','M2C13','M2C24','M4C01','M4C02','M4C03','M4C04'];
+function canonicalCycle(v){
+  if(v==null)return null;
+  const s=String(v).toUpperCase().replace(/[\s_\-.]/g,'').trim();
+  if(!s||s==='-')return null;
+  if(s==='M1')return 'M1';
+  let m=s.match(/^M2C?(13|24)$/); if(m)return 'M2C'+m[1];
+  m=s.match(/^M4C?(\d{1,2})$/);
+  if(m){const n=parseInt(m[1],10); if(n>=1&&n<=4)return 'M4C0'+n;}
+  return null;
+}
+function rawCycleLabel(v){const t=String(v==null?'':v).trim();return (!t||t===BLANK_VAL)?'':t;}
+function buildSourceCycleRoster(){
+  const canon=new Set(),unknown=new Map();
+  (OUTLETS||[]).forEach(o=>{
+    const raw=rawCycleLabel(o.cycle0!=null?o.cycle0:o.cycle);
+    if(!raw)return;
+    const c=canonicalCycle(raw);
+    if(c)canon.add(c);
+    else if(!unknown.has(raw.toUpperCase()))unknown.set(raw.toUpperCase(),raw);
+  });
+  const ordered=CYCLE_CANON_ORDER.filter(x=>canon.has(x));
+  const rest=[...unknown.values()].sort((a,b)=>String(a).localeCompare(String(b)));
+  SOURCE_CYCLE_ROSTER=ordered.concat(rest);
+  updateCycleRosterUI();
+  return SOURCE_CYCLE_ROSTER.slice();
+}
+function updateCycleRosterUI(){
+  const box=$('rcCycleAuto'),inp=$('rcCycle'),n=SOURCE_CYCLE_ROSTER.length;
+  if(inp){inp.value=String(Math.max(1,n));inp.disabled=true;}
+  if(box)box.innerHTML='Cycle <b>AUTO</b> · '+n+'<div class="rccyclelist">'
+    +(n?SOURCE_CYCLE_ROSTER.map(legEsc).join(' · '):'⚠ Cycle tidak ditemukan pada data sumber.')+'</div>';
+}
+function cycleNoteText(roster){
+  return roster.length
+    ? ' Cycle AUTO dari data sumber: '+roster.map(legEsc).join(' · ')+'.'
+    : ' <b>⚠ Cycle tidak ditemukan pada data sumber.</b> Cycle dibiarkan apa adanya (tidak dibuat label baru).';
+}
+
+/* =========================================================================
+   ROAD INTELLIGENCE LEVEL 1
+   TURF SPATIAL PREFILTER + VALHALLA ROAD VALIDATION + BOUNDARY COMPENSATION
+
+   Pipeline (HANYA Level 1 — Blocking: Sales territory, Traffic: macro Hari):
+     existing clusterGroup + cleanup/rebalance   → BASELINE
+     existing buildNeighbors/clusterComponents   → deteksi fragment
+     Turf spatial suspicion                      → prioritas & prefilter
+     Valhalla sources_to_targets (costing auto)  → ROAD FIT (authority)
+     island move (satu unit)                     → road-aware boundary compensation
+     connectivity + balance window               → COMMIT / ROLLBACK per fragment
+
+   Prinsip:
+   - Turf hanya spatial intelligence: TIDAK pernah menentukan assignment final.
+   - Valhalla hanya menerima latitude & longitude.
+   - Transaksi PER FRAGMENT: kegagalan satu fragment tidak membatalkan
+     koreksi sebelumnya yang sudah committed.
+   - Balance tidak dipaksa persis sama; dipakai operational slack window.
+   ========================================================================= */
+const VALHALLA_BASE_URL='https://valhalla1.openstreetmap.de';
+const VALHALLA_COSTING='auto';
+function blankRoadStat(){return {
+  islandsDetected:0, islandsResolved:0, islandsResolvedSpatial:0, islandsResolvedRoad:0,
+  islandsSplitMultiTarget:0, islandOutletsMoved:0, islandsUnresolved:0,
+  actionableIslandsDetected:0, actionableIslandsResolved:0, actionableIslandsUnresolved:0,
+  islandsSkippedNotActionable:0, islandCleanupStopReason:'',
+  boundaryRebalanceRounds:0, boundaryCandidatesEvaluated:0,
+  boundaryTransfersCommitted:0, boundaryOutletsMoved:0,
+  candidateDetected:0, candidateDisconnected:0, candidatePocket:0, candidateLobe:0, candidateWeakNeck:0,
+  candidateArticulation:0, weakNeckMoved:0, weakNeckKept:0,
+  fragmentDetected:0, fragmentChecked:0, fragmentMoved:0, fragmentKept:0, fragmentSkipped:0,
+  boundaryCandidates:0, boundaryMoved:0, boundaryAttempted:0, boundaryCommitted:0,
+  localAttempted:0, localCommitted:0, localRounds:0, graceUsed:0,
+  connectivityRollbackSource:0, connectivityRollbackTarget:0, connectivityRollbackBoth:0,
+  connectivityRollbackSourceEmpty:0, connectivityFirstFailCandidateMove:0,
+  connectivityFirstFailPairwise:0, connectivityFirstFailLocal:0,
+  spatialConnectivityPass:0, roadConnectivityFallback:0, roadConnectivityPass:0,
+  roadConnectivityFail:0, roadConnectivityUnknown:0, sourceSpatialRollback:0,
+  valhallaRequests:0, cacheHits:0,
+  iterations:0, turfUsed:false, fallbackReason:'' };}
+const VAL={
+  enabled:false, timeoutMs:12000, maxRequests:60, maxFragments:24,
+  anchorLimit:4, minImproveRatio:0.75, minImproveSec:180,
+  fragmentMaxRatio:0.40, fragmentMaxAbs:80,
+  compMaxPasses:14, compBatchMax:8, compRatio:1.10, compPenaltySec:120,
+  // --- detector diagnostik sekunder (TIDAK mengubah core clustering) ---
+  diagK:6,                 // neighbor lokal khusus DETEKSI. Core graph tetap K=10.
+  diagGapFactor:3.2,       // adaptive: edge putus bila jarak > median spasi lokal x faktor
+  diagMaxMembers:1500,     // guard performa: cluster sangat besar lewati detektor diagnostik
+  pocketMaxRatio:0.33,     // candidate pocket/lobe harus jauh lebih kecil dari main body
+  // --- weak-neck / low-capacity graph-cut lobe detector (Level 1) ---
+  wnMaxSeeds:6,            // seed graph-cut per cluster (hard cap, cegah request/CPU storm)
+  wnMaxCandidates:8,       // candidate weak-neck maksimum per cluster per iterasi
+  wnMinRatio:0.015, wnMinAbs:3,      // lobe minimum: ~1.5% cluster ATAU 3 outlet
+  wnMaxRatio:0.33,                   // lobe maksimum ~33% cluster (jangan pindahkan mayoritas)
+  wnMaxAbs:120,                      // cap absolut KHUSUS weak-neck (fragmentMaxAbs lama TIDAK diubah)
+  wnMedoidSample:80, wnMedoidRef:150,// aproksimasi medoid supaya tetap ringan di cluster besar
+  wnNeckRatioMax:0.25,               // kekuatan cross/internal: makin kecil makin weak-neck
+  wnMinAvgDegree:2.0,                // body-like: rata-rata derajat internal >= 2 (bukan rantai linear)
+  wnCompetitorFactor:2.0,            // territory pesaing harus cukup dekat relatif ke main body
+  wnFlowGuard:500,                   // batas augmenting path per min-cut (bounded, bukan NP-hard)
+  lobeBridgeRatio:0.20,    // kontak ke main body sedikit => lobe (thin bridge)
+  minCoverage:0.5,         // minimal proporsi cell matrix yang reachable agar skor dipakai
+  maxIterations:24, maxCorrections:12,   // hard cap anti infinite loop (TIDAK dinaikkan)
+  // --- global balance gate ---
+  strongRoadRatio:0.50, strongRoadSec:600,   // "strong road evidence": <=50% waktu home DAN hemat >=10 menit
+  balanceGracePct:0.01, balanceGraceAbs:1,   // grace maksimum ~1% target cluster
+  // --- local multi-cluster compensation ---
+  localCompMaxRounds:3, localAdjMinLinks:3, localCompBatchMax:8,
+  // --- candidate priority ---
+  meaningfulPct:0.01, meaningfulAbs:3,
+  // --- Phase 1: Island Cleanup ---
+  // Normal stop Phase 1 = TIDAK ADA LAGI actionable island. Angka di bawah ini
+  // adalah SAFETY LIMIT (anti infinite loop / freeze), bukan kriteria selesai.
+  islandSafetyMaxRounds:400,   // hard safety cap ronde
+  islandNoProgressLimit:8,     // berhenti bila actionable island gagal diselesaikan berturut-turut
+  islandActionableForeignShare:0.6,  // >=60% kontak ke territory LAIN => artificial island
+  islandObviousShare:0.75,     // >=75% kontak tetangga ke satu territory => spatial saja, tanpa Valhalla
+  islandHomeRatio:1.0,         // target harus minimal sebaik Home Main Core (anti kasus "boundary menipu")
+  islandMaxTargets:3,          // maksimal territory pembanding per island
+  islandAnchors:4,             // anchor Main Core per territory saat uji island
+  islandMaxGroups:6,           // maksimal local group per island dalam satu matrix
+  islandSplitMinSize:6,        // island lebih kecil dari ini tidak dipecah
+  islandGroupMin:2,            // group lebih kecil dari ini digabung (anti salt-and-pepper)
+  // --- Phase 2: Road-Aware Boundary Rebalance ---
+  cbTolerancePct:0.015, cbToleranceAbs:3,
+  rebalanceMaxRounds:14, rebalanceBatchMax:6, rebalanceBatchesPerReq:3,
+  rebalanceCandidateCap:40,
+  rebalanceRoadRatio:1.15,     // receiver boleh sedikit lebih lambat (outlet di seam sering nyaris
+                               // setara); yang ditolak adalah receiver yang JELAS lebih buruk
+  // --- hybrid operational connectivity (TARGET-only fallback) ---
+  roadConnAnchors:6,          // anchor Main Core Target (medoid-based) untuk uji road connectivity
+  roadConnSources:4,          // sample titik dari lobe yang dipindah
+  roadConnHomeRatio:1.0,      // waktu ke Target Main Core tidak boleh lebih lama dari ke Home main body
+  roadConnDetourRatio:8.0,    // guard patologi: Main Core wajar beberapa kali lebih jauh dari outlet
+                              // boundary terdekat, jadi rasio ini hanya menangkap kasus ekstrem
+                              // (lobe menempel ke potongan Target yang terpisah), bukan aturan utama
+  turfUsed:false, cache:new Map(), requests:0, failed:false, debugConsole:true,
+  stat:blankRoadStat(), debug:[], detectorRejects:{}, lastDebug:null
+};
+function valhallaEnabled(){const c=$('rcRoadChk');return !!(c&&c.checked);}
+function resetValhallaSession(){VAL.cache.clear();VAL.requests=0;VAL.failed=false;VAL.turfUsed=false;VAL.stat=blankRoadStat();VAL.debug=[];VAL.detectorRejects={};VAL.lastDebug=null;}
+function valSetStatus(html,show){const el=$('rcRoadStatus');if(!el)return;el.innerHTML=html||'';el.classList.toggle('hidden',!show);}
+function getRoadDebug(){return VAL.lastDebug
+  ? Object.assign({},VAL.lastDebug,{stat:Object.assign({},VAL.stat),requests:VAL.requests,failed:VAL.failed,log:VAL.debug.slice()})
+  : {stat:Object.assign({},VAL.stat),requests:VAL.requests,failed:VAL.failed,log:VAL.debug.slice(),candidates:VAL.debug.slice()};}
+/* ---- QA DEBUG: hasil run terakhir diekspos ke window.__JKS_ROAD_DEBUG__ ---- */
+function publishRoadDebug(levelLabel,startedAt,note,rep){
+  const st=VAL.stat;
+  const dbg={
+    runId:'RI-'+startedAt, mode:levelLabel,
+    startedAt:new Date(startedAt).toISOString(), finishedAt:new Date().toISOString(),
+    summary:{
+      candidatesDetected:st.candidateDetected, disconnected:st.candidateDisconnected,
+      spatialPocket:st.candidatePocket, lobe:st.candidateLobe,
+      weakNeck:st.candidateWeakNeck, articulation:st.candidateArticulation,
+      moved:st.fragmentMoved, kept:st.fragmentKept, skipped:st.fragmentSkipped,
+      boundaryMoved:st.boundaryCommitted, boundaryAttempted:st.boundaryAttempted,
+      boundaryCommitted:st.boundaryCommitted, localAttempted:st.localAttempted,
+      localCommitted:st.localCommitted, localRounds:st.localRounds, graceUsed:st.graceUsed,
+      connectivityRollbackSource:st.connectivityRollbackSource,
+      connectivityRollbackTarget:st.connectivityRollbackTarget,
+      connectivityRollbackBoth:st.connectivityRollbackBoth,
+      connectivityRollbackSourceEmpty:st.connectivityRollbackSourceEmpty,
+      connectivityFirstFailCandidateMove:st.connectivityFirstFailCandidateMove,
+      connectivityFirstFailPairwise:st.connectivityFirstFailPairwise,
+      connectivityFirstFailLocal:st.connectivityFirstFailLocal,
+      spatialConnectivityPass:st.spatialConnectivityPass,
+      roadConnectivityFallback:st.roadConnectivityFallback,
+      roadConnectivityPass:st.roadConnectivityPass,
+      roadConnectivityFail:st.roadConnectivityFail,
+      roadConnectivityUnknown:st.roadConnectivityUnknown,
+      sourceSpatialRollback:st.sourceSpatialRollback,
+      requests:VAL.requests, cacheHits:st.cacheHits,
+      iterations:st.iterations, turfUsed:st.turfUsed,
+      detectorRejects:Object.assign({},VAL.detectorRejects||{}),
+      fallbackReason:st.fallbackReason||''
+    },
+    candidates:VAL.debug.slice(),
+    islands:(rep&&rep.islands)?rep.islands.slice():[],
+    transfers:(rep&&rep.transfers)?rep.transfers.slice():[],
+    note:note||''
+  };
+  if(rep){
+    dbg.summary.islandsDetected=st.islandsDetected;
+    dbg.summary.islandsResolved=st.islandsResolved;
+    dbg.summary.islandsResolvedSpatial=st.islandsResolvedSpatial;
+    dbg.summary.islandsResolvedRoad=st.islandsResolvedRoad;
+    dbg.summary.islandsSplitMultiTarget=st.islandsSplitMultiTarget;
+    dbg.summary.islandOutletsMoved=st.islandOutletsMoved;
+    dbg.summary.islandsUnresolved=st.islandsUnresolved;
+    dbg.summary.actionableIslandsDetected=st.actionableIslandsDetected;
+    dbg.summary.actionableIslandsResolved=st.actionableIslandsResolved;
+    dbg.summary.actionableIslandsUnresolved=st.actionableIslandsUnresolved;
+    dbg.summary.islandsSkippedNotActionable=st.islandsSkippedNotActionable;
+    dbg.summary.islandCleanupStopReason=rep.islandCleanupStopReason||st.islandCleanupStopReason||'';
+    dbg.summary.islandCleanupRounds=rep.islandCleanupRounds||0;
+    dbg.summary.boundaryRebalanceRounds=st.boundaryRebalanceRounds;
+    dbg.summary.boundaryCandidatesEvaluated=st.boundaryCandidatesEvaluated;
+    dbg.summary.boundaryTransfersCommitted=st.boundaryTransfersCommitted;
+    dbg.summary.boundaryOutletsMoved=st.boundaryOutletsMoved;
+    dbg.summary.cbTolerance=rep.cbTolerance;
+    dbg.summary.balanceBefore=rep.balanceBefore?rep.balanceBefore.counts:null;
+    dbg.summary.balanceAfter=rep.balanceAfter?rep.balanceAfter.counts:null;
+    dbg.summary.maxDeviationBefore=rep.balanceBefore?rep.balanceBefore.maxDeviation:null;
+    dbg.summary.maxDeviationAfter=rep.balanceAfter?rep.balanceAfter.maxDeviation:null;
+    dbg.summary.requestBudgetRemaining=Math.max(0,VAL.maxRequests-VAL.requests);
+  }
+  VAL.lastDebug=dbg;
+  try{ if(typeof window!=='undefined')window.__JKS_ROAD_DEBUG__=dbg; }catch(e){}
+  try{
+    if(VAL.debugConsole&&typeof console!=='undefined'&&console.table&&dbg.islands.length){
+      console.table(dbg.islands.map(c=>({
+        islandId:c.islandId, type:c.type, size:c.size, source:c.sourceCluster,
+        classification:c.classification, result:c.result, method:c.method,
+        targets:Object.keys(c.assignmentsByTarget).join('/'),
+        moved:c.movedCount, unresolved:c.unresolvedCount, reason:c.reason
+      })));
+    }
+    if(VAL.debugConsole&&typeof console!=='undefined'&&console.table&&dbg.transfers.length){
+      console.table(dbg.transfers.map(t=>({
+        from:t.from, to:t.to, count:t.count,
+        donorSec:Math.round(t.donorRoadMedian), recvSec:Math.round(t.receiverRoadMedian),
+        donorAfter:t.donorAfter, receiverAfter:t.receiverAfter
+      })));
+    }
+    if(false&&VAL.debugConsole&&typeof console!=='undefined'&&console.table&&dbg.candidates.length){
+      console.table(dbg.candidates.map(c=>({
+        type:c.type, subtype:c.subtype||'', size:c.size, cluster:c.source,
+        target:(c.target==null?'':c.target),
+        homeSec:(c.homeMedian==null?'':Math.round(c.homeMedian)),
+        bestSec:(c.candidateMedian==null?'':Math.round(c.candidateMedian)),
+        decision:c.decision, reason:c.reason, compensation:c.boundaryMoved||0,
+        connFail:(c.connectivity?c.connectivity.failure:''),
+        connStage:(c.connectivity?c.connectivity.firstFailureStage:''),
+        operational:(c.connectivity?(c.connectivity.operationalResult||''):'')
+      })));
+    }
+  }catch(e){}
+  return dbg;
+}
+
+/* ---------- TURF SPATIAL INTELLIGENCE (opsional, prefilter/ranking saja) ---------- */
+function turfAvailable(){
+  try{ return !!(typeof window!=='undefined'&&window.turf&&typeof window.turf.point==='function'&&typeof window.turf.distance==='function'); }
+  catch(e){ return false; }
+}
+// jarak km; memakai Turf bila tersedia, kalau tidak jatuh ke Haversine existing (_hav)
+function geoDistKm(a,b){
+  if(VAL.turfUsed){
+    try{ return window.turf.distance(window.turf.point([a[1],a[0]]),window.turf.point([b[1],b[0]]),{units:'kilometers'}); }
+    catch(e){ VAL.turfUsed=false; VAL.stat.turfUsed=false; VAL.stat.fallbackReason=VAL.stat.fallbackReason||'Turf error saat runtime'; }
+  }
+  return _hav(a,b);
+}
+function sampleIdx(list,limit){
+  if(!list||!list.length)return [];
+  if(list.length<=limit)return list.slice();
+  const step=list.length/limit,out=[];
+  for(let i=0;i<limit;i++)out.push(list[Math.min(list.length-1,Math.floor(i*step))]);
+  return [...new Set(out)];
+}
+function nearestKmBetween(pts,setA,setB){
+  let m=Infinity;
+  for(const i of setA)for(const j of setB){const d=geoDistKm(pts[i],pts[j]); if(d<m)m=d;}
+  return m;
+}
+function minSqDistTo(pts,i,refIdx){let m=Infinity;for(const r of refIdx){const d=_dist2(pts[i],pts[r]);if(d<m)m=d;}return m;}
+/* PERBAIKAN ANCHOR (spec 9): anchor territory HARUS boundary-oriented terhadap
+   fragment/batch, bukan tersebar ke seluruh territory. Helper baru — valAnchors()
+   lama tetap ada dan tidak diubah agar tidak ada regression di pemakai lain. */
+function getNearestTerritoryAnchors(pts,memberIdx,refIdx,limit){
+  if(!memberIdx.length)return [];
+  const refs=sampleIdx(refIdx,6);
+  return memberIdx.map(i=>({i,d:minSqDistTo(pts,i,refs)}))
+    .sort((a,b)=>a.d-b.d).slice(0,Math.max(1,limit)).map(x=>x.i);
+}
+
+/* ---------- VALHALLA MATRIX (BATCHED) ---------- */
+function valKey(src,dst){
+  const f=p=>p.map(x=>x[0].toFixed(5)+','+x[1].toFixed(5)).join('|');
+  return VALHALLA_COSTING+'#'+f(src)+'#'+f(dst);
+}
+class ValBudgetError extends Error{}
+// SATU HTTP request = SATU matrix (berapapun jumlah pair di dalamnya).
+async function valhallaMatrix(src,dst){
+  const key=valKey(src,dst);
+  if(VAL.cache.has(key)){VAL.stat.cacheHits++;return VAL.cache.get(key);}
+  if(VAL.requests>=VAL.maxRequests)throw new ValBudgetError('Batas request Valhalla tercapai.');
+  const ctrl=new AbortController(),timer=setTimeout(()=>ctrl.abort(),VAL.timeoutMs);
+  try{
+    VAL.requests++;VAL.stat.valhallaRequests=VAL.requests;   // menghitung HTTP request, bukan pair
+    const body={costing:VALHALLA_COSTING,                    // PRIVACY: hanya lat/lon
+      sources:src.map(p=>({lat:p[0],lon:p[1]})),
+      targets:dst.map(p=>({lat:p[0],lon:p[1]}))};
+    const res=await fetch(VALHALLA_BASE_URL+'/sources_to_targets',{
+      method:'POST',signal:ctrl.signal,
+      headers:{'Content-Type':'application/json','X-Client-Id':'jks-editor-trial'},
+      body:JSON.stringify(body)});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const json=await res.json(),raw=json&&json.sources_to_targets;
+    if(!Array.isArray(raw))throw new Error('Respons Valhalla tidak valid.');
+    const rows=raw.map(r=>(r||[]).map(c=>(c&&typeof c.time==='number'&&isFinite(c.time))?c.time:null));
+    const times=[];let pairs=0;
+    rows.forEach(r=>r.forEach(v=>{pairs++;if(v!=null)times.push(v);}));
+    const out={rows,times,pairs};
+    if(pairs&&times.length<pairs*VAL.minCoverage)out.weak=true;   // coverage tidak cukup
+    VAL.cache.set(key,out);
+    return out;
+  } finally { clearTimeout(timer); }
+}
+/* BATCHING: Home + Candidate A + Candidate B digabung menjadi SATU request.
+   Pemisahan grup dilakukan LOKAL di browser lewat span index — nama cluster
+   tidak pernah dikirim ke Valhalla. */
+async function valhallaGroupedMatrix(srcPts,groups){
+  const targets=[],spans=[];
+  groups.forEach(g=>{spans.push({key:g.key,start:targets.length,len:g.pts.length});g.pts.forEach(p=>targets.push(p));});
+  if(!targets.length||!srcPts.length)return {groups:{},res:null};
+  const res=await valhallaMatrix(srcPts,targets);
+  const out={};
+  spans.forEach(sp=>{
+    const vals=[];let total=0;
+    res.rows.forEach(r=>{for(let c=sp.start;c<sp.start+sp.len;c++){total++;if(r[c]!=null)vals.push(r[c]);}});
+    out[sp.key]={median:valMedian(vals),valid:vals.length,total,coverage:total?vals.length/total:0};
+  });
+  return {groups:out,res};
+}
+function groupReliable(g){return !!g&&g.total>0&&g.coverage>=VAL.minCoverage&&isFinite(g.median);}
+function valMedian(a){if(!a||!a.length)return Infinity;const t=a.slice().sort((x,y)=>x-y),m=t.length>>1;return t.length%2?t[m]:(t[m-1]+t[m])/2;}
+function valCentroid(pts,idxList){let x=0,y=0;idxList.forEach(i=>{x+=pts[i][0];y+=pts[i][1];});return [x/idxList.length,y/idxList.length];}
+function valAnchors(pts,idxList,refPt,limit){
+  const sorted=idxList.slice().sort((a,b)=>_dist2(pts[a],refPt)-_dist2(pts[b],refPt));
+  const take=Math.min(limit,sorted.length),out=[];
+  const step=Math.max(1,Math.floor(sorted.length/take));
+  for(let i=0;i<sorted.length&&out.length<take;i+=step)out.push(sorted[i]);
+  for(let i=0;out.length<take&&i<sorted.length;i++)if(out.indexOf(sorted[i])<0)out.push(sorted[i]);
+  return out;
+}
+function valNearestClusters(pts,assign,fragIdx,homeCluster,limit){
+  const best=new Map();
+  for(let i=0;i<assign.length;i++){
+    const c=assign[i]; if(c===homeCluster)continue;
+    let d=Infinity; for(const f of fragIdx){const t=_dist2(pts[i],pts[f]); if(t<d)d=t;}
+    if(!best.has(c)||d<best.get(c))best.set(c,d);
+  }
+  return [...best.entries()].sort((a,b)=>a[1]-b[1]).slice(0,limit).map(x=>x[0]);
+}
+
+/* ---------- CONNECTIVITY PRIMITIVE (semantik neighbor graph existing) ---------- */
+function clusterCompCount(assign,c,neigh){
+  const seen=new Set();let n=0;
+  for(let i=0;i<assign.length;i++){
+    if(assign[i]!==c||seen.has(i))continue;
+    n++;const q=[i];seen.add(i);
+    while(q.length){const u=q.shift();for(const v of neigh[u])if(assign[v]===c&&!seen.has(v)){seen.add(v);q.push(v);}}
+  }
+  return n;
+}
+function clusterMembers(assign,c,exclude){
+  const out=[];for(let i=0;i<assign.length;i++)if(assign[i]===c&&(!exclude||!exclude.has(i)))out.push(i);return out;
+}
+function growBoundaryBatch(assign,neigh,seed,fromC,maxSize,exclude){
+  const set=new Set([seed]),q=[seed];
+  while(q.length&&set.size<maxSize){
+    const u=q.shift();
+    for(const v of neigh[u]){
+      if(set.size>=maxSize)break;
+      if(assign[v]!==fromC||set.has(v)||(exclude&&exclude.has(v)))continue;
+      set.add(v);q.push(v);
+    }
+  }
+  return [...set];
+}
+
+/* =========================================================================
+   TURF SECOND SPATIAL DETECTOR — POCKET / LOBE / THIN BRIDGE
+   Core graph (K=10, buildNeighbors) TIDAK diubah dan tetap menjadi detector
+   utama untuk fragment disconnected. Graph di bawah ini murni DIAGNOSTIK:
+   lebih lokal (K=6) + adaptive gap dari median spasi lokal cluster itu
+   sendiri (bukan ambang kilometer global). Tidak pernah mengubah assignment.
+   ========================================================================= */
+function buildDiagnosticGraph(pts,memberIdx){
+  const K=Math.max(3,VAL.diagK),adj=new Map(),nn=[];
+  memberIdx.forEach(i=>adj.set(i,new Set()));
+  const knn=new Map();
+  for(const i of memberIdx){
+    const arr=[];
+    for(const j of memberIdx){ if(j!==i)arr.push([_dist2(pts[i],pts[j]),j]); }
+    arr.sort((a,b)=>a[0]-b[0]);
+    const top=arr.slice(0,K).map(x=>x[1]);
+    const kms=top.map(j=>geoDistKm(pts[i],pts[j]));   // Turf dipakai di sini (skala adaptif)
+    knn.set(i,{top,kms});
+    if(kms.length)nn.push(kms[0]);
+  }
+  const msp=valMedian(nn);
+  const thr=isFinite(msp)?Math.max(msp*VAL.diagGapFactor,1e-9):Infinity;
+  for(const i of memberIdx){
+    const e=knn.get(i);
+    e.top.forEach((j,t)=>{ if(e.kms[t]<=thr){adj.get(i).add(j);adj.get(j).add(i);} });
+  }
+  return {adj,medianSpacingKm:msp,thresholdKm:thr};
+}
+function componentsFromAdj(adj,memberIdx){
+  const seen=new Set(),out=[];
+  for(const s of memberIdx){
+    if(seen.has(s))continue;
+    const comp=[],q=[s];seen.add(s);
+    while(q.length){const u=q.shift();comp.push(u);for(const v of (adj.get(u)||[]))if(!seen.has(v)){seen.add(v);q.push(v);}}
+    out.push(comp);
+  }
+  return out.sort((a,b)=>b.length-a.length);
+}
+function bridgeContacts(neigh,compSet,clusterC,assign){
+  let n=0;
+  for(const i of compSet)for(const j of neigh[i])if(!compSet.has(j)&&assign[j]===clusterC)n++;
+  return n;
+}
+/* =========================================================================
+   WEAK-NECK / LOW-CAPACITY GRAPH-CUT LOBE DETECTOR (LEVEL 1 ONLY)
+   Menangani kasus: territory MASIH CONNECTED di core graph K=10 DAN di
+   diagnostic graph K=6, tetapi main body dan lobe hanya tersambung lewat
+   leher tipis (satu bridge, atau beberapa edge lemah).
+
+   Dua lapis:
+     (1) literal bridge/articulation — Tarjan low-link, linear time;
+     (2) bounded low-capacity min-cut (Edmonds-Karp) dari MAIN CORE anchors
+         ke suspicious seed neighbourhood, kapasitas edge = 1/(jarak km).
+
+   DETECTOR SAJA: tidak pernah mengubah assignment. Keputusan akhir tetap
+   Valhalla + connectivity + balance + boundary compensation.
+   Core K=10 dan diagnostic K=6 TIDAK diubah.
+   ========================================================================= */
+function wnLocalIndex(memberIdx){const m=new Map();memberIdx.forEach((g,i)=>m.set(g,i));return m;}
+function wnAdjLocal(adj,memberIdx,idOf){
+  return memberIdx.map(g=>{
+    const out=[];
+    for(const h of (adj.get(g)||[])){const j=idOf.get(h); if(j!==undefined)out.push(j);}
+    return out;
+  });
+}
+/* (1) Tarjan iteratif: kumpulkan sisi subtree dari setiap bridge edge. */
+function findBridgeLobes(adj,memberIdx){
+  const idOf=wnLocalIndex(memberIdx),nb=wnAdjLocal(adj,memberIdx,idOf),n=memberIdx.length;
+  const disc=new Array(n).fill(-1),low=new Array(n).fill(0),parent=new Array(n).fill(-1);
+  const children=Array.from({length:n},()=>[]);
+  let timer=0;const bridgeChild=[];
+  for(let s=0;s<n;s++){
+    if(disc[s]>=0)continue;
+    disc[s]=low[s]=timer++;
+    const stack=[[s,0]];
+    while(stack.length){
+      const top=stack[stack.length-1],u=top[0];
+      if(top[1]<nb[u].length){
+        const v=nb[u][top[1]++];
+        if(disc[v]<0){parent[v]=u;children[u].push(v);disc[v]=low[v]=timer++;stack.push([v,0]);}
+        else if(v!==parent[u])low[u]=Math.min(low[u],disc[v]);
+      }else{
+        stack.pop();
+        const pnode=parent[u];
+        if(pnode>=0){
+          low[pnode]=Math.min(low[pnode],low[u]);
+          if(low[u]>disc[pnode])bridgeChild.push(u);      // edge (parent,u) adalah bridge
+        }
+      }
+    }
+  }
+  const out=[];
+  for(const root of bridgeChild){
+    const side=[],q=[root];const seen=new Set([root]);
+    while(q.length){const u=q.shift();side.push(memberIdx[u]);for(const v of children[u])if(!seen.has(v)){seen.add(v);q.push(v);}}
+    const other=n-side.length;
+    out.push(side.length<=other?side:memberIdx.filter(g=>!side.includes(g)));
+  }
+  return out;
+}
+/* (1b) TRUE ARTICULATION POINT (Tarjan standar).
+   Beda dengan bridge: bridge memakai low[v] > disc[u] (edge pemutus),
+   articulation memakai low[v] >= disc[u] (node pemutus) dan root DFS dengan
+   lebih dari satu child. Kasus "dua body berbagi satu node penghubung"
+   TIDAK punya bridge edge, tetapi punya articulation point.
+   Node articulation-nya sendiri DITINGGAL di sisi main (paling aman). */
+function findArticulationLobes(adj,memberIdx){
+  const idOf=wnLocalIndex(memberIdx),nb=wnAdjLocal(adj,memberIdx,idOf),n=memberIdx.length;
+  const disc=new Array(n).fill(-1),low=new Array(n).fill(0),parent=new Array(n).fill(-1);
+  const children=Array.from({length:n},()=>[]);
+  const roots=[];let timer=0;
+  const artChild=[];                       // {art:u, child:v}
+  for(let s=0;s<n;s++){
+    if(disc[s]>=0)continue;
+    roots.push(s);disc[s]=low[s]=timer++;
+    const stack=[[s,0]];
+    while(stack.length){
+      const top=stack[stack.length-1],u=top[0];
+      if(top[1]<nb[u].length){
+        const v=nb[u][top[1]++];
+        if(disc[v]<0){parent[v]=u;children[u].push(v);disc[v]=low[v]=timer++;stack.push([v,0]);}
+        else if(v!==parent[u])low[u]=Math.min(low[u],disc[v]);
+      }else{
+        stack.pop();
+        const pn=parent[u];
+        if(pn>=0){
+          low[pn]=Math.min(low[pn],low[u]);
+          if(low[u]>=disc[pn])artChild.push({art:pn,child:u});     // pn = articulation (non-root)
+        }
+      }
+    }
+  }
+  const rootSet=new Set(roots);
+  roots.forEach(r=>{ if(children[r].length>1)children[r].forEach(v=>artChild.push({art:r,child:v})); });
+  const out=[],seen=new Set();
+  for(const {art,child} of artChild){
+    if(rootSet.has(art)&&children[art].length<=1)continue;
+    const side=[],q=[child],vis=new Set([child]);
+    while(q.length){const u=q.shift();side.push(memberIdx[u]);for(const v of children[u])if(!vis.has(v)){vis.add(v);q.push(v);}}
+    if(!side.length||side.length>=n-1)continue;
+    const key=side.slice().sort((a,b)=>a-b).join(',');
+    if(seen.has(key))continue;
+    seen.add(key);
+    out.push({side,artNode:memberIdx[art]});
+  }
+  return out;
+}
+/* Aproksimasi MEDOID: outlet NYATA dengan median jarak terkecil ke seluruh
+   territory. Median (bukan total) supaya lobe jauh tidak menarik medoid. */
+function wnApproxMedoid(pts,memberIdx){
+  if(memberIdx.length<=2)return memberIdx[0];
+  const cand=sampleIdx(memberIdx,Math.min(VAL.wnMedoidSample,memberIdx.length));
+  const ref=sampleIdx(memberIdx,Math.min(VAL.wnMedoidRef,memberIdx.length));
+  let best=cand[0],bestD=Infinity;
+  for(const g of cand){
+    const ds=[];for(const h of ref){if(h!==g)ds.push(geoDistKm(pts[g],pts[h]));}
+    const m=valMedian(ds);
+    if(m<bestD){bestD=m;best=g;}
+  }
+  return best;
+}
+/* MAIN CORE anchors: CENTRAL MASS dulu, density belakangan.
+   Lobe kecil yang sangat padat TIDAK boleh merebut peran main core. */
+function wnMainCoreAnchors(pts,memberIdx,adj,limit){
+  if(!memberIdx.length)return [];
+  const medoid=wnApproxMedoid(pts,memberIdx);                 // outlet nyata, bukan centroid virtual
+  const dist=new Map(memberIdx.map(g=>[g,geoDistKm(pts[g],pts[medoid])]));
+  const medianD=valMedian(memberIdx.map(g=>dist.get(g)));
+  // CENTRAL MASS = separuh territory terdekat ke medoid (dominant mass, bukan mass terpadat)
+  let pool=memberIdx.filter(g=>dist.get(g)<=medianD);
+  if(pool.length<Math.max(limit,4))
+    pool=memberIdx.slice().sort((a,b)=>dist.get(a)-dist.get(b)).slice(0,Math.max(limit,Math.ceil(memberIdx.length*0.5)));
+  const scored=pool.map(g=>{
+    const deg=(adj.get(g)||new Set()).size||0;
+    let sum=0,cnt=0;
+    for(const h of (adj.get(g)||[])){sum+=geoDistKm(pts[g],pts[h]);cnt++;}
+    const dens=cnt?1/(sum/cnt+0.05):0;
+    return {g,score:deg*2+dens};
+  }).sort((a,b)=>b.score-a.score);
+  const minSep=isFinite(medianD)?medianD*0.2:0;               // jangan semua anchor dari satu micro-pocket
+  const out=[medoid];
+  for(const x of scored){
+    if(out.length>=limit)break;
+    if(x.g===medoid)continue;
+    if(minSep>0&&out.some(a=>geoDistKm(pts[a],pts[x.g])<minSep))continue;
+    out.push(x.g);
+  }
+  for(const x of scored){                                     // isi bila separation terlalu ketat
+    if(out.length>=Math.min(limit,4))break;
+    if(out.indexOf(x.g)<0)out.push(x.g);
+  }
+  out.medoid=medoid;
+  return out;
+}
+/* SUSPICIOUS SEEDS: jauh dari main core, lingkungan lokal padat, sedikit
+   koneksi langsung ke sisi main. Di-cap keras supaya tidak jadi request storm. */
+function wnSuspiciousSeeds(pts,memberIdx,adj,coreAnchors,limit){
+  const coreSet=new Set(coreAnchors);
+  const scored=[];
+  for(const g of memberIdx){
+    if(coreSet.has(g))continue;
+    let dCore=Infinity;for(const a of coreAnchors){const d=geoDistKm(pts[g],pts[a]);if(d<dCore)dCore=d;}
+    const nbs=[...(adj.get(g)||[])];
+    if(nbs.length<2)continue;
+    let sum=0;nbs.forEach(h=>sum+=geoDistKm(pts[g],pts[h]));
+    const dens=nbs.length/(sum/nbs.length+0.05);
+    scored.push({g,score:dCore*dens,dCore});
+  }
+  scored.sort((a,b)=>b.score-a.score);
+  const out=[],used=new Set();
+  for(const x of scored){
+    if(out.length>=limit)break;
+    if(used.has(x.g))continue;
+    out.push(x.g);
+    used.add(x.g);for(const h of (adj.get(x.g)||[]))used.add(h);   // hindari seed bertumpuk
+  }
+  return out;
+}
+/* (2) bounded min-cut Edmonds-Karp; kapasitas = 1/(jarak km + eps) sehingga
+   koneksi pendek "mahal" dan koneksi panjang/sedikit menjadi leher murah. */
+function wnMinCut(pts,memberIdx,adj,sourceNodes,sinkNodes){
+  const idOf=wnLocalIndex(memberIdx),m=memberIdx.length,S=m,T=m+1,n=m+2;
+  const cap=Array.from({length:n},()=>new Map());
+  const add=(u,v,c)=>{cap[u].set(v,(cap[u].get(v)||0)+c); if(!cap[v].has(u))cap[v].set(u,0);};
+  memberIdx.forEach((g,i)=>{
+    for(const h of (adj.get(g)||[])){
+      const j=idOf.get(h); if(j===undefined||j<=i)continue;
+      const c=1/(geoDistKm(pts[g],pts[h])+0.05);
+      add(i,j,c);add(j,i,c);
+    }
+  });
+  const INF=1e9;
+  const srcSet=new Set(sourceNodes),snkSet=new Set(sinkNodes);
+  for(const g of srcSet){ if(snkSet.has(g))return null; }
+  srcSet.forEach(g=>{const i=idOf.get(g); if(i!==undefined)add(S,i,INF);});
+  snkSet.forEach(g=>{const i=idOf.get(g); if(i!==undefined)add(i,T,INF);});
+  let flow=0,guard=0;
+  while(guard++<VAL.wnFlowGuard){
+    const prev=new Array(n).fill(-1);prev[S]=S;
+    const q=[S];let found=false;
+    while(q.length&&!found){
+      const u=q.shift();
+      for(const [v,c] of cap[u]){ if(c>1e-9&&prev[v]<0){prev[v]=u;if(v===T){found=true;break;}q.push(v);} }
+    }
+    if(prev[T]<0)break;
+    let aug=Infinity;
+    for(let v=T;v!==S;v=prev[v])aug=Math.min(aug,cap[prev[v]].get(v));
+    if(!(aug>1e-9))break;
+    for(let v=T;v!==S;v=prev[v]){const u=prev[v];cap[u].set(v,cap[u].get(v)-aug);cap[v].set(u,(cap[v].get(u)||0)+aug);}
+    flow+=aug;
+    if(flow>=INF)return null;                       // source & sink tak terpisahkan
+  }
+  const seen=new Set([S]),q2=[S];
+  while(q2.length){const u=q2.shift();for(const [v,c] of cap[u])if(c>1e-9&&!seen.has(v)){seen.add(v);q2.push(v);}}
+  const lobe=[];memberIdx.forEach((g,i)=>{if(!seen.has(i))lobe.push(g);});
+  return {cutCapacity:flow,lobe};
+}
+/* Ukur kekuatan leher: bobot koneksi internal vs cross (memakai CORE graph,
+   dibobot jarak — 500 m lebih kuat daripada 4 km). */
+/* Dihitung pada DIAGNOSTIC graph (di situlah leher terlihat), dibobot jarak:
+   koneksi 500 m jauh lebih kuat daripada 4 km. */
+function wnNeckStrength(pts,adj,lobeSet){
+  let internal=0,cross=0,internalEdges=0,crossEdges=0;
+  for(const i of lobeSet){
+    for(const j of (adj.get(i)||[])){
+      const w=1/(geoDistKm(pts[i],pts[j])+0.05);
+      if(lobeSet.has(j)){internal+=w;internalEdges++;}
+      else {cross+=w;crossEdges++;}
+    }
+  }
+  return {internal:internal/2,cross,internalEdges:internalEdges/2,crossEdges,
+          ratio:cross/Math.max(1e-9,internal/2)};
+}
+/* Body-like: bukan sekadar rantai/tentacle linear. */
+function wnIsBodyLike(lobe,strength,adj){
+  if(lobe.length<2)return false;
+  const avgDeg=(2*strength.internalEdges)/lobe.length;
+  if(avgDeg<VAL.wnMinAvgDegree)return false;
+  const set=new Set(lobe);
+  let seen=new Set([lobe[0]]),q=[lobe[0]];
+  while(q.length){const u=q.shift();for(const v of (adj.get(u)||[]))if(set.has(v)&&!seen.has(v)){seen.add(v);q.push(v);}}
+  return seen.size===lobe.length;                    // lobe harus connected secara internal
+}
+/* Rangkai semuanya menjadi candidate weak-neck-lobe untuk satu cluster. */
+function detectWeakNeckCandidates(pts,assign,k,neigh,cluster,memb,dg,rejectLog){
+  const out=[],clusterSize=memb.length;
+  const rej=rejectLog||[];
+  const minSize=Math.max(VAL.wnMinAbs,Math.ceil(clusterSize*VAL.wnMinRatio));
+  // CAP KHUSUS WEAK-NECK — fragmentMaxAbs (dipakai disconnected/pocket) TIDAK diubah.
+  const maxSize=Math.min(Math.floor(clusterSize*VAL.wnMaxRatio),VAL.wnMaxAbs);
+  if(clusterSize<minSize*3||maxSize<minSize)return out;
+  const adj=dg.adj;
+  const core=wnMainCoreAnchors(pts,memb,adj,Math.min(8,Math.max(3,Math.ceil(clusterSize*0.03))));
+  const coreSet=new Set(core);
+  const sides=[];
+  findBridgeLobes(adj,memb).forEach(side=>sides.push({idx:side,via:'bridge',cut:null,artNode:null}));
+  findArticulationLobes(adj,memb).forEach(a=>sides.push({idx:a.side,via:'articulation',cut:null,artNode:a.artNode}));
+  const seeds=wnSuspiciousSeeds(pts,memb,adj,core,VAL.wnMaxSeeds);
+  for(const seed of seeds){
+    const sink=[seed,...[...(adj.get(seed)||[])]].filter(g=>!coreSet.has(g));
+    if(!sink.length)continue;
+    let r=null;
+    try{ r=wnMinCut(pts,memb,adj,core,sink); }catch(e){ r=null; }
+    if(r&&r.lobe.length)sides.push({idx:r.lobe,via:'min-cut',cut:r.cutCapacity});
+  }
+  const taken=[];
+  for(const side of sides){
+    if(out.length>=VAL.wnMaxCandidates)break;
+    const lobe=side.idx;
+    if(lobe.some(g=>coreSet.has(g))){rej.push('SKIP_TOO_LARGE');continue;}
+    if(lobe.length<minSize){rej.push('SKIP_TOO_SMALL');continue;}
+    if(lobe.length>maxSize){rej.push('SKIP_TOO_LARGE');continue;}
+    const set=new Set(lobe);
+    const strength=wnNeckStrength(pts,adj,set);
+    if(!wnIsBodyLike(lobe,strength,adj)){rej.push('SKIP_NOT_BODY_LIKE');continue;}
+    if(strength.ratio>VAL.wnNeckRatioMax){rej.push('SKIP_NECK_TOO_STRONG');continue;}
+    if(taken.some(t=>overlapRatio(lobe,t)>=0.6))continue;
+    const main=memb.filter(g=>!set.has(g));
+    if(!main.length)continue;
+    out.push({type:'weak-neck-lobe',subtype:side.via==='min-cut'?'low-capacity-lobe':(side.via+'-lobe'),
+      cluster,idx:lobe.slice(),main,
+      mainCore:{medoidIndex:(core.medoid==null?null:core.medoid),anchorCount:core.length},
+      bridge:bridgeContacts(neigh,set,cluster,assign),
+      neck:{via:side.via,cutCapacity:side.cut,artNode:(side.artNode==null?null:side.artNode),
+      internal:strength.internal,cross:strength.cross,
+      internalEdges:strength.internalEdges,crossEdges:strength.crossEdges,ratio:strength.ratio}});
+    taken.push(set);
+  }
+  return out;
+}
+function candidateSignature(cluster,idx){return cluster+':'+idx.slice().sort((a,b)=>a-b).join(',');}
+function overlapRatio(a,bSet){let n=0;for(const x of a)if(bSet.has(x))n++;return n/Math.max(1,Math.min(a.length,bSet.size));}
+
+/* Kumpulkan candidate dari state assignment SAAT INI (dipanggil ulang tiap iterasi). */
+function detectRoadCandidates(pts,assign,k,neigh,locked){
+  const list=[];
+  const coreComps=clusterComponents(assign,k,neigh);
+  for(let c=0;c<k;c++){
+    const memb=clusterMembers(assign,c);
+    if(memb.length<4)continue;
+    const clusterSize=memb.length;
+    const capRel=Math.max(1,Math.floor(clusterSize*VAL.fragmentMaxRatio));
+    /* (A) fragment disconnected menurut CORE graph existing */
+    const comps=(coreComps[c]||[]).slice().sort((a,b)=>b.length-a.length);
+    if(comps.length>1){
+      const main=comps[0];
+      for(let i=1;i<comps.length;i++){
+        const m=comps[i];
+        if(m.length>capRel||m.length>VAL.fragmentMaxAbs)continue;
+        list.push({type:'disconnected',cluster:c,idx:m.slice(),main:main.slice(),bridge:0});
+      }
+    }
+    /* (B) spatial pocket / lobe: masih CONNECTED di core graph, tapi terpecah
+           pada diagnostic graph yang lebih lokal + adaptive gap */
+    if(memb.length<=VAL.diagMaxMembers){
+      const dg=buildDiagnosticGraph(pts,memb);
+      const dcomps=componentsFromAdj(dg.adj,memb);
+      if(dcomps.length>1){
+        const dmain=dcomps[0];
+        const capPocket=Math.max(1,Math.floor(clusterSize*VAL.pocketMaxRatio));
+        for(let i=1;i<dcomps.length;i++){
+          const m=dcomps[i];
+          if(m.length>capPocket||m.length>VAL.fragmentMaxAbs)continue;
+          const set=new Set(m);
+          const contacts=bridgeContacts(neigh,set,c,assign);        // kekuatan jembatan ke main body
+          const thin=contacts<=Math.max(2,Math.ceil(m.length*VAL.lobeBridgeRatio));
+          list.push({type:thin?'lobe':'spatial-pocket',cluster:c,idx:m.slice(),
+                     main:dmain.slice(),bridge:contacts,spacingKm:dg.medianSpacingKm,gapKm:dg.thresholdKm});
+        }
+      }
+      /* (C) WEAK-NECK LOBE: masih connected di core K=10 DAN diagnostic K=6,
+             tetapi hanya tersambung lewat leher tipis / kapasitas rendah. */
+      try{
+        const rej=[];
+        detectWeakNeckCandidates(pts,assign,k,neigh,c,memb,dg,rej).forEach(x=>list.push(x));
+        VAL.detectorRejects=VAL.detectorRejects||{};
+        rej.forEach(r=>{VAL.detectorRejects[r]=(VAL.detectorRejects[r]||0)+1;});
+      }catch(e){ /* detector opsional: kegagalan tidak boleh menghentikan Road Intelligence */ }
+    }
+  }
+  /* dedup: candidate identik / overlap tinggi hanya diproses sekali */
+  const out=[],taken=[];
+  const rank={disconnected:0,lobe:1,'weak-neck-lobe':2,'spatial-pocket':3};
+  list.sort((a,b)=>(rank[a.type]-rank[b.type])||(a.idx.length-b.idx.length));
+  for(const c of list){
+    if(c.idx.some(i=>locked.has(i)))continue;                      // anti-bounce
+    const set=new Set(c.idx);
+    if(taken.some(t=>t.cluster===c.cluster&&overlapRatio(c.idx,t.set)>=0.6))continue;
+    c.sig=candidateSignature(c.cluster,c.idx);
+    taken.push({cluster:c.cluster,set});
+    out.push(c);
+  }
+  return out;
+}
+/* Candidate priority: masalah struktural bermakna didahulukan; micro-issue
+   TIDAK dibuang, hanya turun prioritas dan tetap diproses bila budget sisa. */
+function meaningfulSize(clusterSize){
+  return Math.max(VAL.meaningfulAbs,Math.ceil(clusterSize*VAL.meaningfulPct));
+}
+function rankCandidatePriority(cand){
+  const clusterSize=(cand.main?cand.main.length:0)+cand.idx.length;
+  const minMeaningful=meaningfulSize(clusterSize);
+  const big=cand.idx.length>=minMeaningful;
+  const structural=cand.type==='weak-neck-lobe'||((cand.type==='disconnected'||cand.type==='lobe')&&big);
+  cand.tier=structural?1:(big?2:3);
+  // ukuran tidak boleh menang sendiri: log-scaled, tetap dikalikan bukti spatial
+  cand.priority=(cand.suspicion||1)*Math.log2(1+cand.idx.length);
+  return cand;
+}
+function scoreCandidate(pts,assign,cand){
+  const fs=sampleIdx(cand.idx,5);
+  const homeKm=nearestKmBetween(pts,fs,sampleIdx(cand.main,12));
+  const cands=valNearestClusters(pts,assign,cand.idx,cand.cluster,2);
+  let bestKm=Infinity;
+  cands.forEach(c=>{const d=nearestKmBetween(pts,fs,sampleIdx(clusterMembers(assign,c),12)); if(d<bestKm)bestKm=d;});
+  cand.spatial={homeKm,bestKm,bridge:cand.bridge};
+  const ratio=(isFinite(homeKm)&&isFinite(bestKm)&&bestKm>0)?(homeKm/bestKm):1;
+  const bridgeBoost=1+2/(1+(cand.bridge||0));                       // kontak sedikit → makin suspicious
+  const typeBoost=cand.type==='disconnected'?1.6:(cand.type==='lobe'?1.25:(cand.type==='weak-neck-lobe'?1.35:1));
+  const neckBoost=(cand.type==='weak-neck-lobe'&&cand.neck)?(1+Math.max(0,VAL.wnNeckRatioMax-cand.neck.ratio)*2):1;
+  cand.suspicion=ratio*bridgeBoost*typeBoost*neckBoost;
+  // COMPETING TERRITORY: weak-neck hanya layak diperiksa bila ada territory lain
+  // yang cukup dekat dengan lobe dibanding main body-nya sendiri.
+  if(cand.type==='weak-neck-lobe'&&isFinite(homeKm)&&(!isFinite(bestKm)||bestKm>homeKm*VAL.wnCompetitorFactor))
+    cand.noCompetitor=true;
+  return cand;
+}
+
+/* ---------- ROAD-AWARE BOUNDARY COMPENSATION (batched matrix) ---------- */
+async function boundaryCompensate(ctx){
+  const {pts,assign,neigh,source,targetC,movedSet,target,slack}=ctx;
+  const tried=new Set();
+  let movedBack=0,passes=0,budgetHit=false;
+  while(passes<VAL.compMaxPasses){
+    passes++;
+    const cnt=clusterSizes(assign,ctx.k);
+    if(cnt[source]>=Math.floor(target-slack)&&cnt[targetC]<=Math.ceil(target+slack))break;   // sudah dalam window
+    const need=Math.min(Math.ceil((cnt[targetC]-cnt[source])/2),VAL.compBatchMax);
+    if(need<=0)break;
+    const srcIdx=clusterMembers(assign,source),tgtIdx=clusterMembers(assign,targetC,movedSet);
+    if(!srcIdx.length||!tgtIdx.length)break;
+    const srcRef=sampleIdx(srcIdx,12);
+    const capCand=Math.min(Math.max(20,Math.ceil(tgtIdx.length*0.15)),60);
+    const ranked=tgtIdx.filter(i=>!tried.has(i))
+      .map(i=>({i,d:nearestKmBetween(pts,[i],srcRef)}))
+      .sort((a,b)=>a.d-b.d).slice(0,capCand);
+    if(!ranked.length)break;
+    VAL.stat.boundaryCandidates+=ranked.length;
+    let applied=false;
+    for(const cand of ranked){
+      if(tried.has(cand.i))continue;
+      if(!neigh[cand.i].some(j=>assign[j]===source)){tried.add(cand.i);continue;}   // wajib boundary nyata
+      const batch=growBoundaryBatch(assign,neigh,cand.i,targetC,Math.max(1,need),movedSet);
+      const set=new Set(batch);
+      const tgtCompBefore=clusterCompCount(assign,targetC,neigh),srcCompBefore=clusterCompCount(assign,source,neigh);
+      if(!sourceStaysConnectedWithout(assign,targetC,set,neigh)){batch.forEach(i=>tried.add(i));continue;}
+      let srcMed,tgtMed;
+      try{
+        const bPts=sampleIdx(batch,3).map(i=>pts[i]);
+        const srcAnchor=getNearestTerritoryAnchors(pts,srcIdx,batch,3).map(i=>pts[i]);
+        const tgtAnchor=getNearestTerritoryAnchors(pts,tgtIdx.filter(i=>!set.has(i)),batch,3).map(i=>pts[i]);
+        if(!srcAnchor.length||!tgtAnchor.length){batch.forEach(i=>tried.add(i));continue;}
+        // SATU request untuk Source + Target sekaligus
+        const g=await valhallaGroupedMatrix(bPts,[{key:'src',pts:srcAnchor},{key:'tgt',pts:tgtAnchor}]);
+        if(!groupReliable(g.groups.src)||!groupReliable(g.groups.tgt)){batch.forEach(i=>tried.add(i));continue;}
+        srcMed=g.groups.src.median;tgtMed=g.groups.tgt.median;
+      }catch(err){
+        if(err instanceof ValBudgetError){budgetHit=true;break;}
+        throw err;
+      }
+      const roadOK=(srcMed<=tgtMed*VAL.compRatio)||((srcMed-tgtMed)<=VAL.compPenaltySec);
+      if(!roadOK){batch.forEach(i=>tried.add(i));continue;}
+      batch.forEach(i=>assign[i]=source);
+      const okConn=clusterCompCount(assign,source,neigh)<=srcCompBefore&&clusterCompCount(assign,targetC,neigh)<=tgtCompBefore;
+      if(!okConn){batch.forEach(i=>assign[i]=targetC);batch.forEach(i=>tried.add(i));continue;}   // NO NEW ISLAND
+      movedBack+=batch.length;VAL.stat.boundaryAttempted+=batch.length;   // ATTEMPTED (belum tentu commit)
+      batch.forEach(i=>tried.add(i));
+      applied=true;break;
+    }
+    if(budgetHit||!applied)break;
+  }
+  return {movedBack,budgetHit};
+}
+
+/* =========================================================================
+   GLOBAL BALANCE GATE
+   Gate lama menilai HANYA pasangan Source/Target. Akibatnya koreksi dengan
+   road evidence sangat kuat bisa di-rollback padahal balance SELURUH Level-1
+   tidak memburuk. Gate baru menilai semua cluster sekaligus.
+   ========================================================================= */
+function globalBalanceMetrics(assign,k,targetSize){
+  const counts=clusterSizes(assign,k);
+  let maxDeviation=0,totalDeviation=0;
+  for(let i=0;i<k;i++){
+    const d=Math.abs((counts[i]||0)-targetSize);
+    if(d>maxDeviation)maxDeviation=d;
+    totalDeviation+=d;
+  }
+  return {counts:Array.prototype.slice.call(counts,0,k),targetSize,maxDeviation,totalDeviation,
+          maxDeviationPct:targetSize>0?maxDeviation/targetSize:0};
+}
+function balanceGraceLimit(targetSize){
+  return Math.max(VAL.balanceGraceAbs,Math.round(targetSize*VAL.balanceGracePct));
+}
+function isStrongRoadEvidence(homeMedian,bestMedian){
+  if(!isFinite(homeMedian)||!isFinite(bestMedian))return false;
+  return bestMedian<=homeMedian*VAL.strongRoadRatio&&(homeMedian-bestMedian)>=VAL.strongRoadSec;
+}
+/* PRIMARY = maxDeviation. totalDeviation hanya secondary/quality signal, tidak
+   pernah membenarkan satu cluster menjadi ekstrem. */
+function globalBalanceGate(before,after,strongRoad){
+  if(after.maxDeviation<=before.maxDeviation)
+    return {ok:true,grace:false,reason:'MOVE_GLOBAL_BALANCE_PASS'};
+  if(strongRoad){
+    const grace=balanceGraceLimit(before.targetSize);
+    if(after.maxDeviation<=before.maxDeviation+grace)
+      return {ok:true,grace:true,graceLimit:grace,reason:'MOVE_STRONG_ROAD_GRACE'};
+  }
+  return {ok:false,grace:false,reason:'ROLLBACK_GLOBAL_BALANCE'};
+}
+
+/* =========================================================================
+   LOCAL MULTI-CLUSTER COMPENSATION
+   Setelah pairwise compensation, surplus bisa tersisa di Target. Alih-alih
+   memaksa semuanya kembali ke Source, surplus boleh dialirkan ke cluster
+   yang BENAR-BENAR BERSEBELAHAN dan sedang defisit. Bukan global optimizer:
+   scope hanya Source/Target + tetangga langsungnya, maksimal beberapa ronde.
+   ========================================================================= */
+function roadClusterAdjacency(assign,k,neigh,minLinks){
+  const cnt=Array.from({length:k},()=>new Map());
+  for(let i=0;i<assign.length;i++){
+    const a=assign[i];
+    for(const j of neigh[i]){
+      const b=assign[j];
+      if(b===a||b==null||a==null)continue;
+      cnt[a].set(b,(cnt[a].get(b)||0)+1);
+    }
+  }
+  const need=Math.max(1,minLinks||VAL.localAdjMinLinks);
+  return cnt.map(m=>{const set=new Set();m.forEach((v,c)=>{if(v>=need)set.add(c);});return set;});
+}
+/* Satu percobaan transfer batch boundary FROM → TO. Mengembalikan jumlah
+   outlet yang benar-benar dipindahkan (0 bila ditolak). */
+async function attemptLocalTransfer(ctx,from,to){
+  const {pts,assign,neigh,k,target,protectedSet,tried}=ctx;
+  const fromIdx=clusterMembers(assign,from,protectedSet),toIdx=clusterMembers(assign,to);
+  if(!fromIdx.length||!toIdx.length)return {moved:0};
+  const toRef=sampleIdx(toIdx,12);
+  const capCand=Math.min(Math.max(20,Math.ceil(fromIdx.length*0.15)),60);
+  const ranked=fromIdx.filter(i=>!tried.has(i))
+    .map(i=>({i,d:nearestKmBetween(pts,[i],toRef)}))
+    .sort((a,b)=>a.d-b.d).slice(0,capCand);
+  if(!ranked.length)return {moved:0};
+  VAL.stat.boundaryCandidates+=ranked.length;
+  for(const cand of ranked){
+    if(tried.has(cand.i))continue;
+    if(!neigh[cand.i].some(j=>assign[j]===to)){tried.add(cand.i);continue;}   // wajib boundary nyata
+    const need=Math.min(VAL.localCompBatchMax,Math.max(1,Math.ceil((clusterSizes(assign,k)[from]-target)/2)));
+    const batch=growBoundaryBatch(assign,neigh,cand.i,from,Math.max(1,need),protectedSet);
+    const set=new Set(batch);
+    const fromCompBefore=clusterCompCount(assign,from,neigh),toCompBefore=clusterCompCount(assign,to,neigh);
+    if(!sourceStaysConnectedWithout(assign,from,set,neigh)){batch.forEach(i=>tried.add(i));continue;}
+    let fromMed,toMed;
+    try{
+      const bPts=sampleIdx(batch,3).map(i=>pts[i]);
+      const fromAnchor=getNearestTerritoryAnchors(pts,fromIdx.filter(i=>!set.has(i)),batch,3).map(i=>pts[i]);
+      const toAnchor=getNearestTerritoryAnchors(pts,toIdx,batch,3).map(i=>pts[i]);
+      if(!fromAnchor.length||!toAnchor.length){batch.forEach(i=>tried.add(i));continue;}
+      const g=await valhallaGroupedMatrix(bPts,[{key:'from',pts:fromAnchor},{key:'to',pts:toAnchor}]);   // SATU request
+      if(!groupReliable(g.groups.from)||!groupReliable(g.groups.to)){batch.forEach(i=>tried.add(i));continue;}
+      fromMed=g.groups.from.median;toMed=g.groups.to.median;
+    }catch(err){
+      if(err instanceof ValBudgetError)return {moved:0,budget:true};
+      throw err;
+    }
+    // road rule: tujuan lebih baik ATAU hampir setara. Jelas lebih buruk => tolak.
+    const roadOK=(toMed<=fromMed*VAL.compRatio)||((toMed-fromMed)<=VAL.compPenaltySec);
+    if(!roadOK){batch.forEach(i=>tried.add(i));continue;}
+    const balBefore=globalBalanceMetrics(assign,k,target);
+    batch.forEach(i=>assign[i]=to);
+    VAL.stat.boundaryAttempted+=batch.length;VAL.stat.localAttempted+=batch.length;
+    const okConn=clusterCompCount(assign,from,neigh)<=fromCompBefore
+               &&clusterCompCount(assign,to,neigh)<=toCompBefore;
+    const balAfter=globalBalanceMetrics(assign,k,target);
+    const balBetter=(balAfter.maxDeviation<balBefore.maxDeviation)
+      ||(balAfter.maxDeviation===balBefore.maxDeviation&&balAfter.totalDeviation<balBefore.totalDeviation);
+    if(!okConn||!balBetter){
+      batch.forEach(i=>assign[i]=from);batch.forEach(i=>tried.add(i));continue;                // revert
+    }
+    batch.forEach(i=>tried.add(i));
+    return {moved:batch.length,from,to};
+  }
+  return {moved:0};
+}
+async function localMultiClusterCompensate(ctx){
+  const {assign,neigh,k,target,source,targetC}=ctx;
+  const adjc=roadClusterAdjacency(assign,k,neigh,VAL.localAdjMinLinks);
+  const scope=new Set([source,targetC]);
+  (adjc[source]||new Set()).forEach(c=>scope.add(c));
+  (adjc[targetC]||new Set()).forEach(c=>scope.add(c));     // maksimal 1 hop dari Source/Target
+  const tried=new Set();
+  const local=Object.assign({},ctx,{tried});
+  let moved=0,rounds=0,budgetHit=false;
+  const touched=new Set();
+  while(rounds<VAL.localCompMaxRounds){
+    rounds++;
+    const bal=globalBalanceMetrics(assign,k,target);
+    const surplus=[...scope].filter(c=>bal.counts[c]>target).sort((a,b)=>bal.counts[b]-bal.counts[a]);
+    let applied=false;
+    for(const S of surplus){
+      const deficits=[...(adjc[S]||new Set())]
+        .filter(D=>scope.has(D)&&bal.counts[D]<target)
+        .sort((a,b)=>bal.counts[a]-bal.counts[b]);
+      for(const D of deficits){
+        const r=await attemptLocalTransfer(local,S,D);
+        if(r.budget){budgetHit=true;break;}
+        if(r.moved){moved+=r.moved;applied=true;touched.add(S);touched.add(D);break;}
+      }
+      if(applied||budgetHit)break;
+    }
+    if(!applied||budgetHit)break;
+  }
+  VAL.stat.localRounds+=rounds;
+  return {moved,rounds,budgetHit,clustersTouched:[...touched]};
+}
+
+/* =========================================================================
+   CONNECTIVITY DIAGNOSTIC (READ-ONLY / INSTRUMENTATION SAJA)
+   Tidak mengubah assignment, rule, threshold, atau keputusan apa pun.
+   Hanya membaca state memakai helper existing clusterCompCount/clusterSizes
+   supaya bisa diketahui KAPAN dan DI MANA connectivity memburuk.
+   ========================================================================= */
+function connSnapshot(assign,k,neigh,srcC,tgtC,counts){
+  const c=counts||clusterSizes(assign,k);
+  return {
+    sourceComponents:clusterCompCount(assign,srcC,neigh),
+    targetComponents:clusterCompCount(assign,tgtC,neigh),
+    sourceSize:c[srcC]||0,
+    targetSize:c[tgtC]||0
+  };
+}
+function connMarkWorse(base,snap){
+  snap.sourceWorse=snap.sourceComponents>base.sourceComponents;
+  snap.targetWorse=snap.targetComponents>base.targetComponents;
+  return snap;
+}
+/* Menjelaskan connOK yang SUDAH ada — tidak dipakai untuk mengambil keputusan. */
+function connDiagnose(base,fin){
+  if(!base||!fin)return 'NONE';
+  if(fin.sourceSize<=0)return 'SOURCE_EMPTY';
+  const s=fin.sourceComponents>base.sourceComponents;
+  const t=fin.targetComponents>base.targetComponents;
+  return (s&&t)?'BOTH':(s?'SOURCE':(t?'TARGET':'NONE'));
+}
+function connFirstFailureStage(conn){
+  if(!conn)return 'NONE';
+  const stages=[['CANDIDATE_MOVE',conn.afterCandidateMove],['PAIRWISE',conn.afterPairwise],['LOCAL',conn.afterLocal]];
+  for(const st of stages){ const sn=st[1]; if(sn&&(sn.sourceWorse||sn.targetWorse))return st[0]; }
+  return 'NONE';
+}
+function connTallyRollback(conn){
+  if(!conn)return;
+  const st=VAL.stat;
+  if(conn.failure==='SOURCE')st.connectivityRollbackSource++;
+  else if(conn.failure==='TARGET')st.connectivityRollbackTarget++;
+  else if(conn.failure==='BOTH')st.connectivityRollbackBoth++;
+  else if(conn.failure==='SOURCE_EMPTY')st.connectivityRollbackSourceEmpty++;
+  if(conn.firstFailureStage==='CANDIDATE_MOVE')st.connectivityFirstFailCandidateMove++;
+  else if(conn.firstFailureStage==='PAIRWISE')st.connectivityFirstFailPairwise++;
+  else if(conn.firstFailureStage==='LOCAL')st.connectivityFirstFailLocal++;
+}
+
+/* =========================================================================
+   HYBRID OPERATIONAL CONNECTIVITY
+   KNN hanya tahu kedekatan antar OUTLET; ia tidak tahu jalan penghubung yang
+   kebetulan tidak punya toko. Karena itu: bila SOURCE tetap aman tetapi
+   komponen TARGET bertambah HANYA karena candidate move, kita tanya jaringan
+   jalan apakah lobe tersebut masih terhubung secara OPERASIONAL ke Main Core
+   Target. SOURCE dan BOTH tetap hard rollback. Tidak ada outlet bridge.
+
+   Catatan audit: candidateMedian pada validasi awal memakai
+   getNearestTerritoryAnchors(...) = outlet Target TERDEKAT ke lobe
+   (boundary-oriented). Itu tepat untuk menilai road FIT, tetapi TIDAK
+   membuktikan hubungan ke BADAN UTAMA Target — anchor terdekat bisa saja
+   outlet peripheral/island Target itu sendiri. Karena itu fallback memakai
+   anchor Main Core berbasis medoid (arsitektur existing), bukan anchor lama.
+   ========================================================================= */
+function targetMainCoreAnchors(pts,memberIdx,limit){
+  if(!memberIdx||!memberIdx.length)return {anchors:[],medoid:null};
+  const lim=Math.max(1,limit||VAL.roadConnAnchors);
+  const medoid=wnApproxMedoid(pts,memberIdx);                       // outlet NYATA, arsitektur existing
+  const sorted=memberIdx.slice().sort((a,b)=>_dist2(pts[a],pts[medoid])-_dist2(pts[b],pts[medoid]));
+  const pool=sorted.slice(0,Math.max(lim,Math.ceil(memberIdx.length*0.35)));  // massa tengah territory
+  const out=[medoid];
+  const step=Math.max(1,Math.floor(pool.length/lim));
+  for(let i=0;i<pool.length&&out.length<lim;i+=step)if(pool[i]!==medoid)out.push(pool[i]);
+  for(let i=0;i<pool.length&&out.length<Math.min(lim,pool.length);i++)
+    if(out.indexOf(pool[i])<0)out.push(pool[i]);
+  return {anchors:out,medoid};
+}
+/* Mengembalikan {result, pass, detail}. TIDAK pernah menulis ke assign. */
+async function targetRoadConnectivity(ctx){
+  const {pts,assign,cand,targetCluster,movedSet,homeMedian,boundaryMedian}=ctx;
+  const detail={reusedExistingMatrix:false,requestAdded:false,
+    sourceSampleCount:0,targetAnchorCount:0,validCells:0,totalCells:0,validCoverage:0,
+    medianSeconds:null,homeMedianSeconds:homeMedian,targetMedianSeconds:boundaryMedian,
+    targetMainCoreMedoid:null,pass:false,reason:''};
+  const body=clusterMembers(assign,targetCluster,movedSet);          // badan Target tanpa lobe yg baru masuk
+  if(!body.length){detail.reason='TARGET_BODY_EMPTY';return {result:'ROAD_CONNECTIVITY_FAILED',pass:false,detail};}
+  const core=targetMainCoreAnchors(pts,body,VAL.roadConnAnchors);
+  if(!core.anchors.length){detail.reason='NO_MAIN_CORE_ANCHOR';return {result:'ROAD_CONNECTIVITY_FAILED',pass:false,detail};}
+  detail.targetMainCoreMedoid=core.medoid;
+  const cen=valCentroid(pts,cand.idx);
+  const srcIdx=valAnchors(pts,cand.idx,cen,VAL.roadConnSources);
+  detail.sourceSampleCount=srcIdx.length;detail.targetAnchorCount=core.anchors.length;
+  const reqBefore=VAL.requests;
+  let g;
+  try{
+    g=await valhallaGroupedMatrix(srcIdx.map(i=>pts[i]),[{key:'core',pts:core.anchors.map(i=>pts[i])}]);
+  }catch(err){
+    if(err instanceof ValBudgetError){detail.reason='REQUEST_BUDGET_EXHAUSTED';
+      return {result:'ROAD_CONNECTIVITY_UNKNOWN',pass:false,detail};}
+    throw err;
+  }
+  detail.requestAdded=VAL.requests>reqBefore;                        // cache existing otomatis mencegah duplikasi
+  detail.reusedExistingMatrix=!detail.requestAdded;
+  const grp=g.groups.core;
+  if(!grp){detail.reason='NO_MATRIX_GROUP';return {result:'ROAD_CONNECTIVITY_UNKNOWN',pass:false,detail};}
+  detail.validCells=grp.valid;detail.totalCells=grp.total;detail.validCoverage=grp.coverage;
+  detail.medianSeconds=isFinite(grp.median)?grp.median:null;
+  if(!groupReliable(grp)){detail.reason='COVERAGE_TOO_LOW';
+    return {result:'ROAD_CONNECTIVITY_UNKNOWN',pass:false,detail};}
+  // Rule relatif (bukan angka km absolut):
+  // (1) ke Main Core Target tidak boleh lebih lama daripada ke main body Home;
+  // (2) tidak boleh detour ekstrem dibanding boundary fit yang sudah divalidasi.
+  const okHome=isFinite(homeMedian)?(grp.median<=homeMedian*VAL.roadConnHomeRatio):false;
+  const okDetour=isFinite(boundaryMedian)&&boundaryMedian>0
+    ?(grp.median<=boundaryMedian*VAL.roadConnDetourRatio):true;
+  if(okHome&&okDetour){detail.pass=true;detail.reason='ROAD_NATURAL_TO_TARGET_MAIN_CORE';
+    return {result:'ROAD_CONNECTED',pass:true,detail};}
+  detail.reason=!okHome?'MAIN_CORE_SLOWER_THAN_HOME':'EXTREME_DETOUR_VS_BOUNDARY';
+  return {result:'ROAD_CONNECTIVITY_FAILED',pass:false,detail};
+}
+
+/* =========================================================================
+   ROAD INTELLIGENCE LEVEL 1 — ORCHESTRATOR DUA FASE
+
+     PHASE 1  ISLAND CLEANUP
+              Hilangkan artificial island/enclave. Island boleh pindah ke
+              1 territory, atau dipecah ke beberapa territory. Kasus yang
+              spasialnya sudah jelas diselesaikan TANPA request Valhalla.
+
+     PHASE 2  ROAD-AWARE BOUNDARY REBALANCE
+              Setelah island bersih, hitung ulang CB per Sales, tentukan
+              donor/receiver, lalu sisir outlet di boundary dengan Valhalla
+              (Donor Main Core vs Receiver Main Core) sampai CB reasonably
+              balanced — bukan sama persis.
+
+   Semua helper existing (detector, Main Core/medoid, adjacency, grouped
+   matrix, cache, budget, connectivity primitive) direuse apa adanya.
+   ========================================================================= */
+function cbTolerance(targetSize){
+  return Math.max(VAL.cbToleranceAbs,Math.ceil(targetSize*VAL.cbTolerancePct));
+}
+/* cache anchor Main Core per cluster, dibersihkan tiap ronde */
+function makeCoreCache(pts){
+  const m=new Map();
+  return {
+    get(assign,c,exclude){
+      if(m.has(c))return m.get(c);
+      const r=targetMainCoreAnchors(pts,clusterMembers(assign,c,exclude),VAL.islandAnchors);
+      m.set(c,r);return r;
+    },
+    clear(){m.clear();}
+  };
+}
+/* territory di sekitar island, dari core neighbor graph (data-driven) */
+function islandSurroundings(assign,neigh,idxSet,homeC){
+  const cnt=new Map();
+  for(const i of idxSet)for(const j of neigh[i]){
+    const c=assign[j];
+    if(c===homeC||idxSet.has(j)||c==null)continue;
+    cnt.set(c,(cnt.get(c)||0)+1);
+  }
+  return [...cnt.entries()].sort((a,b)=>b[1]-a[1]).map(e=>({cluster:e[0],links:e[1]}));
+}
+/* pecah island menjadi LOCAL GROUP yang connected — mencegah salt-and-pepper */
+function islandLocalGroups(pts,assign,neigh,islandIdx,targets){
+  if(targets.length<=1||islandIdx.length<VAL.islandSplitMinSize)
+    return [{idx:islandIdx.slice(),vote:targets[0]}];
+  const samples=new Map(targets.map(c=>[c,sampleIdx(clusterMembers(assign,c),40)]));
+  const vote=new Map();
+  islandIdx.forEach(i=>{
+    let best=targets[0],bd=Infinity;
+    targets.forEach(c=>{
+      let d=Infinity;
+      for(const m of samples.get(c)){const t=_dist2(pts[i],pts[m]);if(t<d)d=t;}
+      if(d<bd){bd=d;best=c;}
+    });
+    vote.set(i,best);
+  });
+  const set=new Set(islandIdx),seen=new Set(),groups=[];
+  for(const s0 of islandIdx){
+    if(seen.has(s0))continue;
+    const v=vote.get(s0),comp=[s0],q=[s0];seen.add(s0);
+    while(q.length){
+      const u=q.shift();
+      for(const w of neigh[u])if(set.has(w)&&!seen.has(w)&&vote.get(w)===v){seen.add(w);comp.push(w);q.push(w);}
+    }
+    groups.push({idx:comp,vote:v});
+  }
+  // gabungkan serpihan kecil ke group tetangga terbesar (anti salt-and-pepper)
+  if(groups.length>1){
+    const big=groups.filter(g=>g.idx.length>=VAL.islandGroupMin);
+    const small=groups.filter(g=>g.idx.length<VAL.islandGroupMin);
+    if(big.length){
+      small.forEach(sg=>{
+        let host=big[0],bd=Infinity;
+        big.forEach(bg=>{
+          const d=nearestKmBetween(pts,sampleIdx(sg.idx,3),sampleIdx(bg.idx,6));
+          if(d<bd){bd=d;host=bg;}
+        });
+        host.idx=host.idx.concat(sg.idx);
+      });
+      groups.length=0;big.forEach(g=>groups.push(g));
+    }
+  }
+  groups.sort((a,b)=>b.idx.length-a.idx.length);
+  return groups.slice(0,VAL.islandMaxGroups);
+}
+/* Profil kontak island: seberapa kuat ia masih menempel ke badan Home
+   dibanding ke territory lain. Memakai core graph existing, read-only. */
+function islandContactProfile(assign,neigh,idxSet,homeC){
+  let homeLinks=0,foreignLinks=0;
+  for(const i of idxSet)for(const j of neigh[i]){
+    if(idxSet.has(j))continue;
+    if(assign[j]===homeC)homeLinks++;
+    else if(assign[j]!=null)foreignLinks++;
+  }
+  const total=homeLinks+foreignLinks;
+  return {homeLinks,foreignLinks,total,foreignShare:total?foreignLinks/total:0};
+}
+/* BEDAKAN candidate detector vs ACTIONABLE ARTIFICIAL ISLAND.
+   Tidak semua lobe/pocket/weak-neck adalah enclave yang wajib dihapus —
+   yang masih menempel kuat ke badan Home tetap boleh tinggal. */
+function classifyIsland(cand,contact,surr){
+  if(!surr.length)return {actionable:false,reason:'NO_SURROUNDING_TERRITORY'};
+  if(cand.type==='disconnected')return {actionable:true,reason:'DISCONNECTED_FROM_HOME'};
+  if(contact.total===0)return {actionable:true,reason:'NO_CONTACT_WITH_HOME'};
+  if(contact.foreignShare>=VAL.islandActionableForeignShare)
+    return {actionable:true,reason:'MOSTLY_SURROUNDED_BY_OTHERS'};
+  return {actionable:false,reason:'STILL_ATTACHED_TO_HOME'};
+}
+/* Kepemilikan spasial konservatif untuk satu local group bila road evidence
+   tidak tersedia. Hanya dipakai kalau surrounding ownership cukup jelas. */
+function groupSpatialOwner(group,surr,dominant,share){
+  if(group&&group.vote!=null)return group.vote;
+  if(dominant&&share>=VAL.islandObviousShare)return dominant.cluster;
+  return null;
+}
+function spatialFallbackPlan(groups,surr,dominant,share){
+  const plan=[];
+  for(const g of groups){
+    const owner=groupSpatialOwner(g,surr,dominant,share);
+    if(owner==null)return null;
+    plan.push({idx:g.idx.slice(),target:owner});
+  }
+  return plan.length?plan:null;
+}
+/* satu island: tentukan pemilik tiap local group. Spatial dulu; Valhalla hanya
+   bila ambigu. Mengembalikan record debug. */
+async function resolveIsland(ctx,cand,rep){
+  const {pts,assign,neigh,k,coreCache}=ctx;
+  const idxSet=new Set(cand.idx);
+  const surr=islandSurroundings(assign,neigh,idxSet,cand.cluster);
+  const contact=islandContactProfile(assign,neigh,idxSet,cand.cluster);
+  const cls=classifyIsland(cand,contact,surr);
+  const rec={islandId:rep.islands.length+1,type:cand.type,subtype:cand.subtype||null,
+    sourceCluster:cand.cluster,size:cand.idx.length,
+    surroundingClusters:surr.map(x=>x.cluster).slice(0,VAL.islandMaxTargets),
+    contact:{homeLinks:contact.homeLinks,foreignLinks:contact.foreignLinks,
+             foreignShare:contact.foreignShare},
+    classification:cls.actionable?'ACTIONABLE_ARTIFICIAL_ISLAND':'NOT_ACTIONABLE',
+    classificationReason:cls.reason,
+    result:'SKIPPED_NOT_ACTIONABLE',
+    method:'SPATIAL',assignmentsByTarget:{},movedCount:0,unresolvedCount:cand.idx.length,
+    roadEvidence:null,reason:''};
+  if(!cls.actionable){                                     // candidate biasa: boleh tetap Home, tanpa request
+    rec.reason=cls.reason;VAL.stat.islandsSkippedNotActionable++;
+    rep.islands.push(rec);return rec;
+  }
+  VAL.stat.actionableIslandsDetected++;
+  rec.result='UNRESOLVED_SAFETY';
+  let targets=surr.slice(0,VAL.islandMaxTargets).map(x=>x.cluster);
+  if(!targets.length){                                     // tidak bersentuhan: pakai kedekatan spasial
+    targets=valNearestClusters(pts,assign,cand.idx,cand.cluster,VAL.islandMaxTargets);
+    rec.surroundingClusters=targets.slice();
+  }
+  targets=targets.filter(c=>c!==cand.cluster);             // Home BUKAN kandidat owner
+  if(!targets.length){rec.reason='NO_SURROUNDING_TERRITORY';VAL.stat.actionableIslandsUnresolved++;
+    rep.islands.push(rec);return rec;}
+
+  const totalLinks=surr.reduce((n,x)=>n+x.links,0);
+  const dominant=surr.length?surr[0]:null;
+  const share=totalLinks?(dominant?dominant.links/totalLinks:0):0;
+  const obvious=!!dominant&&surr.length>=1&&share>=VAL.islandObviousShare
+                &&cand.idx.length<VAL.islandSplitMinSize;
+
+  let plan=null;                                            // [{idx,target}]
+  if(obvious){
+    plan=[{idx:cand.idx.slice(),target:dominant.cluster}];
+    rec.method='SPATIAL';rec.reason='OBVIOUS_ENCLAVE_SINGLE_NEIGHBOUR';
+  }else{
+    // AMBIGU → satu grouped matrix: group island vs Main Core Home + kandidat
+    const groups=islandLocalGroups(pts,assign,neigh,cand.idx,targets);
+    const srcPts=groups.map(g=>{
+      const cen=valCentroid(pts,g.idx);
+      const a=valAnchors(pts,g.idx,cen,1);
+      return pts[a.length?a[0]:g.idx[0]];
+    });
+    const homeCore=coreCache.get(assign,cand.cluster,idxSet);
+    const tg=[];
+    if(homeCore.anchors.length)tg.push({key:'home',pts:homeCore.anchors.map(i=>pts[i])});
+    targets.forEach(c=>{
+      const core=coreCache.get(assign,c,null);
+      if(core.anchors.length)tg.push({key:'t'+c,pts:core.anchors.map(i=>pts[i])});
+    });
+    if(tg.length<2||!srcPts.length){
+      const fb=spatialFallbackPlan(groups,surr,dominant,share);
+      if(fb){plan=fb;rec.method='MIXED';rec.reason='SPATIAL_FALLBACK_NO_ANCHOR';}
+      else {rec.reason='INSUFFICIENT_ANCHORS';VAL.stat.actionableIslandsUnresolved++;rep.islands.push(rec);return rec;}
+    }
+    let gm=null;
+    if(!plan){
+      try{ gm=await valhallaGroupedMatrix(srcPts,tg); }
+      catch(err){
+        if(err instanceof ValBudgetError){
+          const fb=spatialFallbackPlan(groups,surr,dominant,share);
+          if(fb){plan=fb;rec.method='MIXED';rec.reason='SPATIAL_FALLBACK_REQUEST_BUDGET';}
+          else {rec.reason='SKIP_REQUEST_BUDGET';VAL.stat.actionableIslandsUnresolved++;
+            rep.islands.push(rec);ctx.budgetStop=true;return rec;}
+        } else throw err;
+      }
+    }
+    if(!plan){
+    rec.method='VALHALLA';
+    // median per (group,target) dari matrix yang sama — satu request untuk semua group
+    const spanOf={};let off=0;
+    tg.forEach(t=>{spanOf[t.key]=[off,off+t.pts.length];off+=t.pts.length;});
+    const medianFor=(row,key)=>{
+      const sp=spanOf[key],vals=[];
+      for(let c=sp[0];c<sp[1];c++)if(row[c]!=null)vals.push(row[c]);
+      return {median:valMedian(vals),coverage:(sp[1]-sp[0])?vals.length/(sp[1]-sp[0]):0};
+    };
+    plan=[];rec.roadEvidence=[];
+    groups.forEach((g,gi)=>{
+      const row=gm.res&&gm.res.rows?gm.res.rows[gi]:null;
+      if(!row){rec.roadEvidence.push({group:gi,size:g.idx.length,skipped:'NO_ROW'});return;}
+      const home=medianFor(row,'home');
+      let best=null;
+      targets.forEach(c=>{
+        if(!spanOf['t'+c])return;
+        const m=medianFor(row,'t'+c);
+        if(m.coverage<VAL.minCoverage||!isFinite(m.median))return;
+        if(!best||m.median<best.median)best={cluster:c,median:m.median,coverage:m.coverage};
+      });
+      // Home hanya REFERENCE (debug + seberapa buruk target), BUKAN kandidat owner.
+      const ev={group:gi,size:g.idx.length,homeMedianReference:isFinite(home.median)?home.median:null,
+        homeCoverage:home.coverage,best:best?best.cluster:null,
+        bestMedian:best?best.median:null,
+        homeWouldBeFaster:(best&&isFinite(home.median))?(best.median>home.median):null,
+        decision:'UNRESOLVED_SAFETY'};
+      if(!best){
+        // tidak ada road evidence valid → fallback spasial konservatif bila kepemilikan jelas
+        const fb=groupSpatialOwner(g,surr,dominant,share);
+        if(fb!=null){ev.decision='MOVE_SPATIAL_FALLBACK';ev.best=fb;rec.roadEvidence.push(ev);
+          plan.push({idx:g.idx.slice(),target:fb});if(rec.method==='VALHALLA')rec.method='MIXED';return;}
+        ev.decision='UNRESOLVED_SAFETY_NO_RELIABLE_TARGET';rec.roadEvidence.push(ev);return;
+      }
+      ev.decision='MOVE';rec.roadEvidence.push(ev);
+      plan.push({idx:g.idx.slice(),target:best.cluster});
+    });
+    rec.reason=plan.length?'ROAD_OWNERSHIP_BY_MAIN_CORE':'NO_SAFE_TARGET';
+    }
+  }
+
+  if(!plan||!plan.length){VAL.stat.actionableIslandsUnresolved++;rep.islands.push(rec);return rec;}
+  plan=plan.filter(pl=>pl.target!==cand.cluster);          // INVARIANT: Home tidak boleh jadi owner
+  if(!plan.length){rec.reason='NO_SAFE_TARGET';VAL.stat.actionableIslandsUnresolved++;
+    rep.islands.push(rec);return rec;}
+  // ---- terapkan, dengan safety: Home tidak boleh pecah/kosong ----
+  const snapshot=assign.slice();
+  const homeCompBefore=clusterCompCount(assign,cand.cluster,neigh);
+  plan.forEach(p=>p.idx.forEach(i=>assign[i]=p.target));
+  const counts=clusterSizes(assign,k);
+  let ok=counts[cand.cluster]>0&&clusterCompCount(assign,cand.cluster,neigh)<=homeCompBefore;
+  if(ok){ try{ validateClusterAssignment(assign,k,assign.length,neigh); }catch(e){ ok=false; } }
+  if(!ok){
+    for(let i=0;i<assign.length;i++)assign[i]=snapshot[i];
+    rec.reason=(rec.reason?rec.reason+' · ':'')+'ROLLBACK_HOME_INTEGRITY';
+    rec.result='UNRESOLVED_SAFETY';VAL.stat.actionableIslandsUnresolved++;
+    rep.islands.push(rec);return rec;
+  }
+  plan.forEach(p=>{
+    rec.assignmentsByTarget[p.target]=(rec.assignmentsByTarget[p.target]||0)+p.idx.length;
+    rec.movedCount+=p.idx.length;
+    p.idx.forEach(i=>ctx.locked.add(i));
+  });
+  rec.unresolvedCount=cand.idx.length-rec.movedCount;
+  rec.result=rec.unresolvedCount?'PARTIALLY_RESOLVED':'RESOLVED';
+  if(rec.result==='RESOLVED')VAL.stat.actionableIslandsResolved++;
+  else VAL.stat.actionableIslandsUnresolved++;
+  VAL.stat.islandsResolved++;VAL.stat.islandOutletsMoved+=rec.movedCount;
+  if(rec.method==='VALHALLA')VAL.stat.islandsResolvedRoad++; else VAL.stat.islandsResolvedSpatial++;
+  if(Object.keys(rec.assignmentsByTarget).length>1)VAL.stat.islandsSplitMultiTarget++;
+  rep.islands.push(rec);
+  return rec;
+}
+/* ---------------- PHASE 1 ---------------- */
+async function islandCleanupPhase(ctx,rep){
+  const {pts,assign,neigh,k,levelLabel}=ctx;
+  const seen=new Set();
+  let round=0,noProgress=0,stopReason='NO_ACTIONABLE_ISLAND';
+  while(round<VAL.islandSafetyMaxRounds){                    // SAFETY cap, bukan kriteria selesai
+    round++;
+    ctx.coreCache.clear();
+    let cands;
+    try{ cands=detectRoadCandidates(pts,assign,k,neigh,ctx.locked); }catch(e){ break; }
+    cands.forEach(c=>{ if(!seen.has(c.sig)){VAL.stat.islandsDetected++;} });
+    const fresh=cands.filter(c=>!seen.has(c.sig));
+    if(!fresh.length){stopReason='NO_ACTIONABLE_ISLAND';break;}   // normal completion
+    fresh.forEach(c=>{scoreCandidate(pts,assign,c);rankCandidatePriority(c);});
+    fresh.sort((a,b)=>(a.tier-b.tier)||(b.priority-a.priority));
+    const cand=fresh[0];
+    seen.add(cand.sig);
+    if(cand.idx.some(i=>assign[i]!==cand.cluster||ctx.locked.has(i)))continue;   // stale guard
+    setClusterStage('Road Intelligence — Fase 1: membereskan island (ronde '+round+', '+levelLabel+')…');
+    await nextPaint();
+    let rec;
+    try{ rec=await resolveIsland(ctx,cand,rep); }
+    catch(err){
+      if(err instanceof ValBudgetError){ctx.budgetStop=true;stopReason='REQUEST_BUDGET_EXHAUSTED';break;}
+      ctx.hardFail=err;stopReason='VALHALLA_FAILURE';break;
+    }
+    if(rec&&rec.classification==='ACTIONABLE_ARTIFICIAL_ISLAND'){
+      if(rec.movedCount>0)noProgress=0;
+      else {noProgress++;VAL.stat.islandsUnresolved++;}
+    }
+    if(ctx.budgetStop){stopReason='REQUEST_BUDGET_EXHAUSTED';break;}
+    if(noProgress>=VAL.islandNoProgressLimit){stopReason='NO_PROGRESS';break;}
+    if(VAL.requests>=VAL.maxRequests){ctx.budgetStop=true;stopReason='REQUEST_BUDGET_EXHAUSTED';break;}
+  }
+  if(round>=VAL.islandSafetyMaxRounds)stopReason='SAFETY_CAP';
+  VAL.stat.islandCleanupStopReason=stopReason;
+  rep.islandCleanupStopReason=stopReason;
+  rep.islandCleanupRounds=round;
+}
+/* ---------------- PHASE 2 ---------------- */
+async function rebalanceTransfer(ctx,donor,receiver,rep){
+  const {pts,assign,neigh,k,coreCache,tried}=ctx;
+  const donorIdx=clusterMembers(assign,donor,ctx.locked);
+  const recvIdx=clusterMembers(assign,receiver);
+  if(!donorIdx.length||!recvIdx.length)return {moved:0};
+  // kandidat = outlet donor yang BENAR-BENAR di boundary terhadap receiver
+  const recvRef=sampleIdx(recvIdx,12);
+  const ranked=donorIdx
+    .filter(i=>!tried.has(i)&&neigh[i].some(j=>assign[j]===receiver))
+    .map(i=>({i,d:nearestKmBetween(pts,[i],recvRef)}))
+    .sort((a,b)=>a.d-b.d)
+    .slice(0,VAL.rebalanceCandidateCap);
+  if(!ranked.length)return {moved:0};
+  VAL.stat.boundaryCandidatesEvaluated+=ranked.length;
+  const counts=clusterSizes(assign,k);
+  const need=Math.max(1,Math.min(VAL.rebalanceBatchMax,
+    Math.ceil((counts[donor]-counts[receiver])/2)));
+  // bentuk beberapa batch connected sekaligus supaya SATU matrix menilai banyak
+  const batches=[],used=new Set();
+  for(const cnd of ranked){
+    if(batches.length>=VAL.rebalanceBatchesPerReq)break;
+    if(used.has(cnd.i)||tried.has(cnd.i))continue;
+    const excl=new Set([...ctx.locked,...used]);
+    const b=growBoundaryBatch(assign,neigh,cnd.i,donor,need,excl);
+    if(!b.length)continue;
+    b.forEach(x=>used.add(x));
+    batches.push(b);
+  }
+  if(!batches.length)return {moved:0};
+  const dCore=coreCache.get(assign,donor,null),rCore=coreCache.get(assign,receiver,null);
+  if(!dCore.anchors.length||!rCore.anchors.length)return {moved:0};
+  const srcPts=batches.map(b=>{const cen=valCentroid(pts,b);const a=valAnchors(pts,b,cen,1);return pts[a.length?a[0]:b[0]];});
+  let gm;
+  try{
+    gm=await valhallaGroupedMatrix(srcPts,[                     // SATU request untuk semua batch
+      {key:'donor',pts:dCore.anchors.map(i=>pts[i])},
+      {key:'recv',pts:rCore.anchors.map(i=>pts[i])}]);
+  }catch(err){
+    if(err instanceof ValBudgetError)return {moved:0,budget:true};
+    throw err;
+  }
+  const dn=dCore.anchors.length,rn=rCore.anchors.length;
+  const scored=[];
+  batches.forEach((b,bi)=>{
+    const row=gm.res&&gm.res.rows?gm.res.rows[bi]:null;
+    if(!row)return;
+    const dv=[],rv=[];
+    for(let c=0;c<dn;c++)if(row[c]!=null)dv.push(row[c]);
+    for(let c=dn;c<dn+rn;c++)if(row[c]!=null)rv.push(row[c]);
+    if(dv.length<dn*VAL.minCoverage||rv.length<rn*VAL.minCoverage)return;
+    const dm=valMedian(dv),rm=valMedian(rv);
+    if(!isFinite(dm)||!isFinite(rm))return;
+    scored.push({batch:b,donorMedian:dm,receiverMedian:rm,gain:dm-rm});
+  });
+  scored.sort((a,b)=>b.gain-a.gain);
+  for(const sc of scored){
+    // ROAD FIT: receiver tidak boleh JELAS lebih buruk dari donor. Balance tidak pernah
+    // mengalahkan jalan — batch dengan gain terbesar diproses lebih dulu.
+    if(!(sc.receiverMedian<=sc.donorMedian*VAL.rebalanceRoadRatio)){
+      sc.batch.forEach(i=>tried.add(i));continue;
+    }
+    const set=new Set(sc.batch);
+    const dBefore=clusterCompCount(assign,donor,neigh),rBefore=clusterCompCount(assign,receiver,neigh);
+    if(!sourceStaysConnectedWithout(assign,donor,set,neigh)){sc.batch.forEach(i=>tried.add(i));continue;}
+    const balBefore=globalBalanceMetrics(assign,k,ctx.targetSize);
+    sc.batch.forEach(i=>assign[i]=receiver);
+    const balAfter=globalBalanceMetrics(assign,k,ctx.targetSize);
+    const connOK=clusterCompCount(assign,donor,neigh)<=dBefore
+               &&clusterCompCount(assign,receiver,neigh)<=rBefore;   // JANGAN buat island baru
+    const balOK=(balAfter.maxDeviation<balBefore.maxDeviation)
+      ||(balAfter.maxDeviation===balBefore.maxDeviation&&balAfter.totalDeviation<balBefore.totalDeviation);
+    if(!connOK||!balOK){
+      sc.batch.forEach(i=>assign[i]=donor);
+      sc.batch.forEach(i=>tried.add(i));
+      continue;
+    }
+    sc.batch.forEach(i=>tried.add(i));
+    const after=clusterSizes(assign,k);
+    VAL.stat.boundaryTransfersCommitted++;VAL.stat.boundaryOutletsMoved+=sc.batch.length;
+    rep.transfers.push({from:donor,to:receiver,count:sc.batch.length,
+      donorBefore:balBefore.counts[donor],receiverBefore:balBefore.counts[receiver],
+      donorAfter:after[donor],receiverAfter:after[receiver],
+      donorRoadMedian:sc.donorMedian,receiverRoadMedian:sc.receiverMedian,
+      balanceImproved:true,connectivitySafe:true});
+    return {moved:sc.batch.length};
+  }
+  return {moved:0};
+}
+async function boundaryRebalancePhase(ctx,rep){
+  const {assign,neigh,k,levelLabel}=ctx;
+  const tol=cbTolerance(ctx.targetSize);
+  rep.cbTolerance=tol;
+  ctx.tried=new Set();
+  let round=0;
+  while(round<VAL.rebalanceMaxRounds){
+    round++;VAL.stat.boundaryRebalanceRounds++;
+    ctx.coreCache.clear();
+    const counts=clusterSizes(assign,k);
+    const donors=[],receivers=[];
+    for(let c=0;c<k;c++){
+      if(counts[c]>ctx.targetSize+tol)donors.push(c);
+      else if(counts[c]<ctx.targetSize-tol)receivers.push(c);
+    }
+    if(!donors.length||!receivers.length)break;                 // semua di dalam tolerance
+    donors.sort((a,b)=>counts[b]-counts[a]);
+    receivers.sort((a,b)=>counts[a]-counts[b]);
+    const adj=roadClusterAdjacency(assign,k,neigh,VAL.localAdjMinLinks);
+    setClusterStage('Road Intelligence — Fase 2: menyisir boundary (ronde '+round+', '+levelLabel+')…');
+    await nextPaint();
+    let applied=false;
+    for(const D of donors){
+      for(const R of receivers){
+        if(!adj[D]||!adj[D].has(R))continue;                    // hanya territory bersebelahan
+        let r;
+        try{ r=await rebalanceTransfer(ctx,D,R,rep); }
+        catch(err){
+          if(err instanceof ValBudgetError){ctx.budgetStop=true;r={moved:0};}
+          else {ctx.hardFail=err;return;}
+        }
+        if(r.budget){ctx.budgetStop=true;break;}
+        if(r.moved){applied=true;break;}
+      }
+      if(applied||ctx.budgetStop)break;
+    }
+    if(!applied||ctx.budgetStop)break;                          // tidak ada move road-natural yang aman
+    if(VAL.requests>=VAL.maxRequests){ctx.budgetStop=true;break;}
+  }
+}
+/* ---------------- ENTRY POINT ---------------- */
+async function roadIslandValidate(groups,tol,levelLabel){
+  if(!VAL.enabled||!groups||groups.length<2)return groups;
+  const runStartedAt=Date.now();
+  const baseline=groups.map(g=>g.slice());
+  const arr=[],assign=[];
+  groups.forEach((g,gi)=>g.forEach(o=>{arr.push(o);assign.push(gi);}));
+  if(arr.length<6)return baseline;
+  const k=groups.length,pts=arr.map(o=>[o.coord.lat,o.coord.lng]);
+  let neigh;
+  try{ neigh=buildNeighbors(pts,Math.min(10,arr.length-1),rcGap); }catch(e){ return baseline; }  // CORE K=10 tetap
+  VAL.turfUsed=turfAvailable();VAL.stat.turfUsed=VAL.turfUsed;
+  if(!VAL.turfUsed&&!VAL.stat.fallbackReason)VAL.stat.fallbackReason='Turf tidak tersedia · spatial prefilter memakai koordinat';
+  const targetSize=arr.length/k;
+  const ctx={pts,assign,neigh,k,arr,levelLabel,targetSize,
+    locked:new Set(),coreCache:makeCoreCache(pts),budgetStop:false,hardFail:null};
+  const rep={islands:[],transfers:[],cbTolerance:cbTolerance(targetSize),
+    balanceBefore:globalBalanceMetrics(assign,k,targetSize),balanceAfter:null};
+
+  await islandCleanupPhase(ctx,rep);                             // PHASE 1
+  if(!ctx.hardFail)await boundaryRebalancePhase(ctx,rep);        // PHASE 2
+
+  if(ctx.hardFail){VAL.failed=true;VAL.stat.fallbackReason='Valhalla tidak tersedia: '+String(ctx.hardFail.message||ctx.hardFail);}
+  if(ctx.budgetStop&&!VAL.stat.fallbackReason)VAL.stat.fallbackReason='Request budget Valhalla habis';
+
+  setClusterStage('Road Intelligence — validasi akhir Level 1 ('+levelLabel+')…');
+  let final;
+  try{
+    final=ensureNonEmpty(pts,assign.slice(),k,neigh);
+    validateClusterAssignment(final,k,arr.length,neigh);
+  }catch(e){ valSetRoadStatus(levelLabel,'rollback total (validasi akhir gagal)');
+    publishRoadDebug(levelLabel,runStartedAt,'rollback total: validasi akhir gagal',rep); return baseline; }
+  const out=Array.from({length:k},()=>[]);
+  arr.forEach((o,i)=>out[final[i]].push(o));
+  const res=out.filter(g=>g.length).sort((a,b)=>{
+    const la=a.reduce((sum,o)=>sum+o.coord.lng,0)/a.length,lb=b.reduce((sum,o)=>sum+o.coord.lng,0)/b.length;return la-lb;});
+  if(res.length!==baseline.length){valSetRoadStatus(levelLabel,'rollback total (jumlah cluster berubah)');
+    publishRoadDebug(levelLabel,runStartedAt,'rollback total: jumlah cluster berubah',rep);return baseline;}
+  rep.balanceAfter=globalBalanceMetrics(final,k,targetSize);
+  valSetRoadStatus(levelLabel,'');
+  publishRoadDebug(levelLabel,runStartedAt,'',rep);
+  return res;
+}
+function valSetRoadStatus(levelLabel,extra){
+  const st=VAL.stat;
+  let html='<b>Road Intelligence</b> <small>· Level 1 '+legEsc(levelLabel)+'</small><br>'
+    +'Fase 1 · '+st.actionableIslandsDetected+' artificial island · '+st.actionableIslandsResolved+' dibereskan'
+    +' <small>('+st.islandsResolvedSpatial+' spatial · '+st.islandsResolvedRoad+' road'
+    +(st.islandsSplitMultiTarget?' · '+st.islandsSplitMultiTarget+' dipecah':'')+')</small><br>'
+    +st.islandOutletsMoved+' outlet island dipindahkan'
+    +(st.actionableIslandsUnresolved?' · '+st.actionableIslandsUnresolved+' belum jelas':'')
+    +' <small>('+st.islandsDetected+' candidate · '+st.islandsSkippedNotActionable+' bukan island)</small><br>'
+    +'<small>Fase 1 berhenti: '+legEsc(st.islandCleanupStopReason||'-')+'</small><br>'
+    +'Fase 2 · '+st.boundaryRebalanceRounds+' ronde · '+st.boundaryTransfersCommitted+' transfer · '
+    +st.boundaryOutletsMoved+' outlet boundary dipindahkan';
+  html+='<br><small>'+(st.turfUsed?'Spatial: Turf':'Spatial: coordinate fallback')+' · '
+     +VAL.requests+' request'+(st.cacheHits?' · '+st.cacheHits+' cache hit':'')
+     +' · sisa budget '+Math.max(0,VAL.maxRequests-VAL.requests)
+     +' · Road Travel Time (bukan traffic real-time)</small>';
+  if(st.fallbackReason)html+='<br><small>⚠ '+legEsc(st.fallbackReason)+'</small>';
+  if(extra)html+='<br><small>⚠ '+legEsc(extra)+'</small>';
+  valSetStatus(html,true);
+}
 function clusterGroup(arr,k,tol,opts){
   opts=opts||{};k=Math.max(1,Math.min(k,arr.length||1));
   if(k<=1||arr.length<=1)return [arr];
@@ -2365,35 +4021,135 @@ function finishCluster(pool,message,started){
 }
 function setClusterStage(msg){const e=$('loadMsg');if(e)e.innerHTML='<b>⚙️ Menyusun Cluster Terbaik</b><br>'+msg+'<br><small>Proses dapat membutuhkan beberapa detik tergantung jumlah outlet.</small>';}
 function nextPaint(){return new Promise(r=>setTimeout(r,20));}
-async function runBlocking(pool,nS,nR,nC,tol,origCyc,origSales,started){
-  setClusterStage('Membentuk cluster awal, membersihkan fragment, dan menjalankan boundary propagation…');await nextPaint();const salesG=clusterGroup(pool,nS,tol,{qualityProfile:'blocking-sales'}),salesNames=normalizeSalesRoster(maxOverlapSalesAssignment(salesG,origSales),nS),changes=[];
+async function runBlocking(pool,nS,nR,nC,tol,cycRoster,origSales,started){
+  setClusterStage('Membentuk cluster awal, membersihkan fragment, dan menjalankan boundary propagation…');await nextPaint();
+  let salesG=clusterGroup(pool,nS,tol,{qualityProfile:'blocking-sales'});
+  // LEVEL 1 (Blocking) = Sales territory → Valhalla Island Validator (opsional) sebelum turun ke Route.
+  salesG=await roadIslandValidate(salesG,tol,'Sales territory');
+  const salesNames=normalizeSalesRoster(maxOverlapSalesAssignment(salesG,origSales),nS),changes=[];
   for(let si=0;si<salesG.length;si++){setClusterStage('Membersihkan dan menyeimbangkan Rute Sales '+(si+1)+'/'+salesG.length+'…');await nextPaint();const sg=salesG[si],ruteG=clusterGroup(sg,nR,tol,{qualityProfile:'blocking-route'}),routeNames=geographicRouteNames(ruteG);
-    for(let ri=0;ri<ruteG.length;ri++){const rg=ruteG[ri],cycG=clusterGroup(rg,nC,tol,{qualityProfile:'blocking-cycle'});cycG.forEach((cg,ci)=>cg.forEach(o=>changes.push({o,sales:salesNames[si],rute:routeNames[ri],cycle:origCyc[ci]||('C'+(ci+1))})));}}
-  const uniqueSales=[...new Set(changes.map(x=>x.sales))];if(changes.length!==pool.length||new Set(changes.map(x=>x.o)).size!==pool.length)throw new Error('Validasi final gagal: outlet hilang atau duplikat.');if(salesG.length!==nS||salesNames.length!==nS||new Set(salesNames).size!==nS||uniqueSales.length!==nS)throw new Error('Validasi roster Blocking gagal: Sales aktif bukan '+nS+'.');setClusterStage('Memvalidasi hasil…');await nextPaint();pushUndo(pool.map(o=>o.code));applyClusterChanges(changes);setActiveSalesRoster(salesNames,nS);
-  finishCluster(pool,'✅ Selesai: '+pool.length+' toko → '+salesG.length+' Sales × ~'+nR+' Rute × ~'+nC+' Cycle. Penamaan Sales memakai global maximum-overlap one-to-one.'+(validDepot(depotCoord)?' R05/R06 dipilih dari area terdekat Depo setelah geometry final.':''),started);
+    for(let ri=0;ri<ruteG.length;ri++){const rg=ruteG[ri],cycG=clusterGroup(rg,nC,tol,{qualityProfile:'blocking-cycle'});cycG.forEach((cg,ci)=>cg.forEach(o=>changes.push({o,sales:salesNames[si],rute:routeNames[ri],cycle:cycRoster.length?(cycRoster[ci]||cycRoster[cycRoster.length-1]):o.cycle})));}}
+  const uniqueSales=[...new Set(changes.map(x=>x.sales))];if(changes.length!==pool.length||new Set(changes.map(x=>x.o)).size!==pool.length)throw new Error('Validasi final gagal: outlet hilang atau duplikat.');if(salesG.length!==nS||salesNames.length!==nS||new Set(salesNames).size!==nS||uniqueSales.length!==nS)throw new Error('Validasi roster Blocking gagal: Sales aktif bukan '+nS+'.');setClusterStage('Memvalidasi hasil…');await nextPaint();pushUndo(pool.map(o=>o.code));applyClusterChanges(changes);setActiveSalesRoster(salesNames,nS);lastSuccessfulClusterMode='blocking';
+  finishCluster(pool,'✅ Selesai: '+pool.length+' toko → '+salesG.length+' Sales × ~'+nR+' Rute × ~'+nC+' Cycle. Penamaan Sales memakai global maximum-overlap one-to-one.'+(validDepot(depotCoord)?' R05/R06 dipilih dari area terdekat Depo setelah geometry final.':'')+cycleNoteText(cycRoster),started);
 }
-async function runTraffic(pool,nS,nC,tol,origCyc,origSales,started){
-  const globalRoster=resolveActiveSalesRoster(pool,nS,origSales);if(globalRoster.length!==nS||new Set(globalRoster).size!==nS)throw new Error('Validasi Traffic gagal: global Sales roster tidak sesuai input.');setClusterStage('Membentuk 6 macro Route, membersihkan fragment, dan menjalankan boundary propagation…');await nextPaint();const macro=clusterGroup(pool,6,tol,{qualityProfile:'traffic-macro'}),routeNames=geographicRouteNames(macro),changes=[],routeRosterChecks=[];let minSales=Infinity,maxSales=0;
+async function runTraffic(pool,nS,nC,tol,cycRoster,origSales,started){
+  const globalRoster=resolveActiveSalesRoster(pool,nS,origSales);if(globalRoster.length!==nS||new Set(globalRoster).size!==nS)throw new Error('Validasi Traffic gagal: global Sales roster tidak sesuai input.');setClusterStage('Membentuk 6 macro Route, membersihkan fragment, dan menjalankan boundary propagation…');await nextPaint();let macro=clusterGroup(pool,6,tol,{qualityProfile:'traffic-macro'});
+  // LEVEL 1 (Traffic) = 6 macro Route/Hari → Valhalla Island Validator (opsional) sebelum dibagi per Salesman.
+  macro=await roadIslandValidate(macro,tol,'macro Hari');
+  const routeNames=geographicRouteNames(macro),changes=[],routeRosterChecks=[];let minSales=Infinity,maxSales=0;
   for(let ri=0;ri<macro.length;ri++){setClusterStage('Menyeimbangkan Sales dan Cycle pada Route '+(ri+1)+'/'+macro.length+'…');await nextPaint();const rg=macro[ri],salesG=clusterGroup(rg,nS,tol,{qualityProfile:'traffic-sales'}),salesNames=maxOverlapSalesAssignment(salesG,globalRoster);minSales=Math.min(minSales,salesG.length);maxSales=Math.max(maxSales,salesG.length);routeRosterChecks.push({route:routeNames[ri],sales:salesNames.slice()});
-    for(let si=0;si<salesG.length;si++){const cycG=clusterGroup(salesG[si],nC,tol,{qualityProfile:'traffic-cycle'});cycG.forEach((cg,ci)=>cg.forEach(o=>changes.push({o,sales:salesNames[si],rute:routeNames[ri],cycle:origCyc[ci]||('C'+(ci+1))})));}}
-  const uniqueSales=[...new Set(changes.map(x=>x.sales))];if(changes.length!==pool.length||new Set(changes.map(x=>x.o)).size!==pool.length)throw new Error('Validasi final gagal: outlet hilang atau duplikat.');if(pool.length>=nS&&(uniqueSales.length!==nS||globalRoster.some(x=>!uniqueSales.includes(x))))throw new Error('Validasi Traffic gagal: global unique Sales bukan '+nS+'.');for(const check of routeRosterChecks)if(check.sales.some(x=>!globalRoster.includes(x))||new Set(check.sales).size!==check.sales.length)throw new Error('Validasi Traffic gagal: Route '+check.route+' memakai roster di luar global roster.');setClusterStage('Memvalidasi hasil…');await nextPaint();pushUndo(pool.map(o=>o.code));applyClusterChanges(changes);setActiveSalesRoster(globalRoster,nS);
+    for(let si=0;si<salesG.length;si++){const cycG=clusterGroup(salesG[si],nC,tol,{qualityProfile:'traffic-cycle'});cycG.forEach((cg,ci)=>cg.forEach(o=>changes.push({o,sales:salesNames[si],rute:routeNames[ri],cycle:cycRoster.length?(cycRoster[ci]||cycRoster[cycRoster.length-1]):o.cycle})));}}
+  const uniqueSales=[...new Set(changes.map(x=>x.sales))];if(changes.length!==pool.length||new Set(changes.map(x=>x.o)).size!==pool.length)throw new Error('Validasi final gagal: outlet hilang atau duplikat.');if(pool.length>=nS&&(uniqueSales.length!==nS||globalRoster.some(x=>!uniqueSales.includes(x))))throw new Error('Validasi Traffic gagal: global unique Sales bukan '+nS+'.');for(const check of routeRosterChecks)if(check.sales.some(x=>!globalRoster.includes(x))||new Set(check.sales).size!==check.sales.length)throw new Error('Validasi Traffic gagal: Route '+check.route+' memakai roster di luar global roster.');setClusterStage('Memvalidasi hasil…');await nextPaint();pushUndo(pool.map(o=>o.code));applyClusterChanges(changes);setActiveSalesRoster(globalRoster,nS);lastSuccessfulClusterMode='traffic';
   let warn='';if(macro.length<6)warn=' <b>Catatan:</b> outlet hanya memungkinkan '+macro.length+' macro Rute.';else if(minSales<nS)warn=' <b>Catatan:</b> sebagian Rute hanya memungkinkan '+minSales+'–'+maxSales+' sub-area Sales karena outlet terbatas.';
-  finishCluster(pool,'✅ Selesai: '+pool.length+' toko → '+macro.length+' Rute/Hari × hingga '+nS+' Sales × ~'+nC+' Cycle.'+(validDepot(depotCoord)?' Dua macro area terdekat Depo diberi label R05/R06.':'')+warn,started);
+  finishCluster(pool,'✅ Selesai: '+pool.length+' toko → '+macro.length+' Rute/Hari × hingga '+nS+' Sales × ~'+nC+' Cycle.'+(validDepot(depotCoord)?' Dua macro area terdekat Depo diberi label R05/R06.':'')+cycleNoteText(cycRoster)+warn,started);
 }
 function runRouting(forceWithoutDepot){if(!validDepot(depotCoord)&&!forceWithoutDepot){pendingCluster=true;$('depotWarn').classList.add('open');return;}runRoutingNow();}
 async function runRoutingNow(){
   const pool=visible().filter(o=>o.coord);if(pool.length<2){alert('Toko termapping yang tampil kurang dari 2. Tidak bisa di-cluster.');return;}
-  const nS=Math.max(1,parseInt($('rcSales').value)||1),nR=clusterMode==='traffic'?6:Math.max(1,parseInt($('rcRute').value)||1),nC=Math.max(1,parseInt($('rcCycle').value)||1);
-  let tol=parseFloat($('rcTolInput').value);if(!Number.isFinite(tol)||tol<0)tol=0;tol=tol/100;rcGap=$('rcGapChk').checked;const origCyc=[...new Set(pool.map(o=>o.cycle0))].filter(v=>v&&v!=='-').sort(rcSort),origSales=originalSalesNames(pool),started=performance.now();
-  setLoad(true,'⚙️ Menyusun Cluster Terbaik…',true);try{if(clusterMode==='traffic')await runTraffic(pool,nS,nC,tol,origCyc,origSales,started);else await runBlocking(pool,nS,nR,nC,tol,origCyc,origSales,started);}catch(err){setLoad(false);alert('Gagal clustering: '+err.message);}
+  const nS=Math.max(1,parseInt($('rcSales').value)||1),nR=clusterMode==='traffic'?6:Math.max(1,parseInt($('rcRute').value)||1);
+  // Cycle AUTO: jumlah & label group Cycle mengikuti roster Cycle SELURUH dataset sumber. Tidak ada C1/C2/C3.
+  const cycRoster=SOURCE_CYCLE_ROSTER.slice(),nC=Math.max(1,cycRoster.length||1);
+  let tol=parseFloat($('rcTolInput').value);if(!Number.isFinite(tol)||tol<0)tol=0;tol=tol/100;rcGap=$('rcGapChk').checked;const origSales=originalSalesNames(pool),started=performance.now();
+  VAL.enabled=valhallaEnabled();resetValhallaSession();valSetStatus('',false);
+  if(VAL.enabled)valSetStatus('<b>Road Intelligence</b><br>Memeriksa fragment…',true);
+  setLoad(true,'⚙️ Menyusun Cluster Terbaik…',true);try{if(clusterMode==='traffic')await runTraffic(pool,nS,nC,tol,cycRoster,origSales,started);else await runBlocking(pool,nS,nR,nC,tol,cycRoster,origSales,started);}catch(err){setLoad(false);alert('Gagal clustering: '+err.message);}
 }
 function routeOptions(){return [...new Set(OUTLETS.map(o=>o.rute).filter(r=>/^R0[1-6]$/.test(r)))].sort(rcSort);}
 function dayOptionHtml(routes){return '<option value="">Pilih hari...</option>'+routes.map(r=>'<option value="'+r+'">'+routeFriendly(r)+'</option>').join('');}
 function syncDayOptions(){const a=$('dayA').value,b=$('dayB').value;[...$('dayA').options].forEach(o=>o.disabled=!!b&&o.value===b);[...$('dayB').options].forEach(o=>o.disabled=!!a&&o.value===a);}
-function openDayModal(){if(viewerMode)return;const routes=routeOptions();if(routes.length<2)return;const rows=$('dayRows');rows.innerHTML=routes.map(r=>{const sc=routeDepotScore(r),n=OUTLETS.filter(o=>o.rute===r).length;return '<div class="dayrow"><i class="daydot" style="background:'+(colorMaps.rute[r]||'#888')+'"></i><b>'+routeFriendly(r)+'</b><span>'+n+' outlet'+(sc?' · ±'+sc.median.toLocaleString('id-ID',{maximumFractionDigits:1})+' km':'')+'</span></div>';}).join('');const html=dayOptionHtml(routes);$('dayA').innerHTML=html;$('dayB').innerHTML=html;$('dayA').value='';$('dayB').value='';dayPreviewState=null;syncDayOptions();$('daySwap').disabled=true;$('dayPreviewText').textContent='Pilih dua hari untuk preview.';$('dayModal').classList.remove('hidden');document.body.classList.add('day-panel-open');render();}
+/* ===== ATUR / TUKAR HARI =====
+   BLOCKING (lastSuccessfulClusterMode==='blocking'): per Salesman.
+   TRAFFIC / belum cluster: tetap GLOBAL seperti behavior existing. */
+function dayIsBlockingScope(){return lastSuccessfulClusterMode==='blocking';}
+function daySalesOptions(){
+  const have=new Set(OUTLETS.filter(o=>o.coord&&!o.ptDel).map(o=>o.sales).filter(v=>v&&v!==BLANK_VAL));
+  const list=activeSalesRoster.filter(v=>have.has(v));      // utamakan Active Sales Roster
+  return list.length?list:[...have].sort(rcSort);
+}
+function dayRouteOptionsFor(sales){
+  const src=sales?OUTLETS.filter(o=>o.sales===sales):OUTLETS;
+  return [...new Set(src.map(o=>o.rute).filter(r=>/^R0[1-6]$/.test(r)))].sort(rcSort);
+}
+function dayRenderRows(routes,sales){
+  const src=sales?OUTLETS.filter(o=>o.sales===sales):OUTLETS;
+  $('dayRows').innerHTML=routes.map(r=>{const sc=routeDepotScore(r,src),n=src.filter(o=>o.rute===r).length;
+    return '<div class="dayrow"><i class="daydot" style="background:'+(colorMaps.rute[r]||'#888')+'"></i><b>'+routeFriendly(r)+'</b><span>'+n+' outlet'+(sc?' · ±'+sc.median.toLocaleString('id-ID',{maximumFractionDigits:1})+' km':'')+'</span></div>';}).join('');
+}
+function dayEnterFocus(sales){
+  if(!dayViewBackup)dayViewBackup={colorMode:colorMode};   // simpan state tampilan sebelum fokus
+  dayFocusSales=sales||null;
+  if(dayFocusSales)colorMode='rute';                       // agar 6 Hari mudah dibandingkan
+  render();
+}
+function dayExitFocus(){
+  if(dayViewBackup){colorMode=dayViewBackup.colorMode;dayViewBackup=null;}
+  dayFocusSales=null;
+}
+function dayResetSelectors(){
+  $('dayA').innerHTML=dayOptionHtml([]);$('dayB').innerHTML=dayOptionHtml([]);
+  $('dayA').value='';$('dayB').value='';$('dayA').disabled=true;$('dayB').disabled=true;$('daySwap').disabled=true;
+}
+function openDayModal(){
+  if(viewerMode)return;
+  const blocking=dayIsBlockingScope(),wrap=$('daySalesWrap'),note=$('dayScopeNote');
+  dayPreviewState=null;dayExitFocus();
+  if(blocking){
+    const list=daySalesOptions();
+    if(!list.length){alert('Belum ada Salesman aktif dengan outlet termapping.');return;}
+    if(wrap)wrap.classList.remove('hidden');
+    $('daySales').innerHTML='<option value="">Pilih Salesman...</option>'+list.map(sName=>'<option value="'+legEsc(sName)+'">'+legEsc(displayDimension('sales',sName))+'</option>').join('');
+    $('daySales').value='';                                 // TIDAK auto-select
+    if(note)note.textContent='Blocking · penukaran hanya berlaku untuk Salesman terpilih';
+    $('dayRows').innerHTML='<div class="daynote">Pilih Salesman untuk menampilkan seluruh Hari miliknya.</div>';
+    dayResetSelectors();
+    $('dayPreviewText').textContent='Pilih Salesman lalu dua Hari untuk preview.';
+  }else{
+    const routes=routeOptions();
+    if(routes.length<2)return;
+    if(wrap)wrap.classList.add('hidden');
+    if(note)note.textContent='Global untuk seluruh dataset · tanpa recluster';
+    dayRenderRows(routes,null);
+    const html=dayOptionHtml(routes);
+    $('dayA').innerHTML=html;$('dayB').innerHTML=html;$('dayA').value='';$('dayB').value='';
+    $('dayA').disabled=false;$('dayB').disabled=false;$('daySwap').disabled=true;
+    $('dayPreviewText').textContent='Pilih dua hari untuk preview.';
+  }
+  syncDayOptions();
+  $('dayModal').classList.remove('hidden');document.body.classList.add('day-panel-open');render();
+}
+function onDaySalesChange(){
+  const sName=$('daySales').value;dayPreviewState=null;
+  if(!sName){
+    dayExitFocus();dayResetSelectors();
+    $('dayRows').innerHTML='<div class="daynote">Pilih Salesman untuk menampilkan seluruh Hari miliknya.</div>';
+    $('dayPreviewText').textContent='Pilih Salesman lalu dua Hari untuk preview.';render();return;
+  }
+  const routes=dayRouteOptionsFor(sName);
+  dayRenderRows(routes,sName);
+  const html=dayOptionHtml(routes);
+  $('dayA').innerHTML=html;$('dayB').innerHTML=html;$('dayA').value='';$('dayB').value='';
+  const ok=routes.length>=2;$('dayA').disabled=!ok;$('dayB').disabled=!ok;$('daySwap').disabled=true;
+  syncDayOptions();
+  $('dayPreviewText').innerHTML=ok?('Pilih dua Hari milik <b>'+legEsc(sName)+'</b> untuk preview.')
+    :('<b>'+legEsc(sName)+'</b><br>Hari kurang dari 2, tidak dapat ditukar.');
+  dayEnterFocus(sName);
+}
 function updateDayPreview(changed){let a=$('dayA').value,b=$('dayB').value;if(a&&b&&a===b){if(changed==='a')$('dayB').value='';else $('dayA').value='';a=$('dayA').value;b=$('dayB').value;}syncDayOptions();const valid=!!a&&!!b&&a!==b;$('daySwap').disabled=!valid;dayPreviewState=valid?{a,b}:null;$('dayPreviewText').innerHTML=valid?('<b>Preview: '+routeFriendly(a)+' ↔ '+routeFriendly(b)+'</b><br>Data belum berubah.'):'Pilih dua hari untuk preview.';render();}
-function closeDayPanel(){const had=!!dayPreviewState;dayPreviewState=null;$('dayModal').classList.add('hidden');document.body.classList.remove('day-panel-open');if(had)render();}
-function swapDaysGlobal(){if(viewerMode)return;const a=$('dayA').value,b=$('dayB').value;if(!a||!b||a===b)return;const affected=OUTLETS.filter(o=>o.rute===a||o.rute===b);if(!affected.length)return;pushUndo(affected.map(o=>o.code));affected.forEach(o=>applyEdit(o,o.sales,o.rute===a?b:a,o.cycle));dayPreviewState=null;rebuildVals(FDIMS,rcSort);buildRC();FDIMS.forEach(buildDim);fillBulkSelectors();$('dayModal').classList.add('hidden');document.body.classList.remove('day-panel-open');render();}
+function closeDayPanel(){const had=!!dayPreviewState||!!dayFocusSales;dayPreviewState=null;dayExitFocus();$('dayModal').classList.add('hidden');document.body.classList.remove('day-panel-open');if(had)render();}
+function swapDaysGlobal(){
+  if(viewerMode)return;
+  const a=$('dayA').value,b=$('dayB').value;if(!a||!b||a===b)return;
+  const blocking=dayIsBlockingScope(),sName=blocking?$('daySales').value:'';
+  if(blocking&&!sName)return;
+  // BLOCKING: hanya outlet milik Salesman terpilih. TRAFFIC: global (macro Hari milik semua Salesman).
+  const affected=OUTLETS.filter(o=>(!blocking||o.sales===sName)&&(o.rute===a||o.rute===b));
+  if(!affected.length)return;
+  pushUndo(affected.map(o=>o.code));                        // satu commit = satu snapshot Undo
+  affected.forEach(o=>applyEdit(o,o.sales,o.rute===a?b:a,o.cycle));
+  dayPreviewState=null;dayExitFocus();
+  rebuildVals(FDIMS,rcSort);buildRC();FDIMS.forEach(buildDim);fillBulkSelectors();
+  $('dayModal').classList.add('hidden');document.body.classList.remove('day-panel-open');render();
+}
 // sort yang ngerti angka: SALES 2 < SALES 10, R2 < R10
 function rcSort(a,b){const na=String(a).match(/\d+/),nb=String(b).match(/\d+/);
   const pa=String(a).replace(/\d+/,''),pb=String(b).replace(/\d+/,'');
@@ -2401,7 +4157,7 @@ function rcSort(a,b){const na=String(a).match(/\d+/),nb=String(b).match(/\d+/);
   return String(a).localeCompare(String(b));}
 function undoRouting(){ if(!OUTLETS.some(o=>o.edited)&&!activeSalesRoster.length){return;}
   if(!confirm('Kembalikan semua sales/rute/cycle ke data asli?'))return;
-  undoAllEdits();activeSalesRoster=[];
+  undoAllEdits();activeSalesRoster=[];lastSuccessfulClusterMode=null;dayExitFocus();resetValhallaSession();valSetStatus('',false);
   rebuildVals(FDIMS,rcSort);
   buildRC();FDIMS.forEach(buildDim);buildKec();fillBulkSelectors();render();
   $('rcInfo').textContent='Sudah dikembalikan ke data asli.';
@@ -2519,8 +4275,11 @@ function undoAllEdits(){OUTLETS.forEach(o=>{
 /* ===== UNDO/REDO PER-PERUBAHAN: simpan snapshot tiap aksi, balikin yg terakhir ===== */
 const UNDO=[];
 const REDO=[];
-function snapOf(codes){const snap=[];codes.forEach(code=>{const o=OUTLETS.find(x=>x.code===code); if(o)snap.push({code,sales:o.sales,rute:o.rute,cycle:o.cycle,edited:o.edited,coord:o.coord,ptDel:!!o.ptDel});});snap.activeSalesRoster=activeSalesRoster.slice();return snap;}
-function applySnap(snap){snap.forEach(s=>{const o=OUTLETS.find(x=>x.code===s.code); if(o){applyEdit(o,s.sales,s.rute,s.cycle); o.edited=s.edited; o.coord=s.coord; o.ptDel=s.ptDel;}});activeSalesRoster=normalizeSalesRoster(snap.activeSalesRoster||[],(snap.activeSalesRoster||[]).length);}
+function snapOf(codes){const snap=[];codes.forEach(code=>{const o=OUTLETS.find(x=>x.code===code); if(o)snap.push({code,sales:o.sales,rute:o.rute,cycle:o.cycle,edited:o.edited,coord:o.coord,ptDel:!!o.ptDel});});snap.activeSalesRoster=activeSalesRoster.slice();snap.clusterMode=lastSuccessfulClusterMode;return snap;}
+function applySnap(snap){snap.forEach(s=>{const o=OUTLETS.find(x=>x.code===s.code); if(o){applyEdit(o,s.sales,s.rute,s.cycle); o.edited=s.edited; o.coord=s.coord; o.ptDel=s.ptDel;}});activeSalesRoster=normalizeSalesRoster(snap.activeSalesRoster||[],(snap.activeSalesRoster||[]).length);
+  // mode cluster ikut Undo/Redo supaya Atur Hari (Blocking per-Salesman vs Traffic global) konsisten
+  lastSuccessfulClusterMode=(snap.clusterMode==='blocking'||snap.clusterMode==='traffic')?snap.clusterMode:null;
+  if(dayFocusSales)dayExitFocus();}
 function refreshAfterHistory(){rebuildVals(FDIMS,rcSort);buildRC();FDIMS.forEach(buildDim);buildKec();fillBulkSelectors();refreshCounts();render();if(typeof updateEditInfo==='function')updateEditInfo();updateUndoBtn();}
 function pushUndo(codes){
   const snap=snapOf(codes);
@@ -2649,7 +4408,7 @@ document.addEventListener('keydown',e=>{
 });
 $('depotBtn').onclick=openDepotModal;$('depotClose').onclick=closeDepotModal;$('depotPick').onclick=beginDepotPick;$('depotSave').onclick=saveDepotInput;$('depotDelete').onclick=()=>{clearDepot();closeDepotModal();render();};$('depotModal').onclick=e=>{if(e.target.id==='depotModal')closeDepotModal();};
 $('warnSetDepot').onclick=()=>{$('depotWarn').classList.remove('open');openDepotModal();};$('warnContinue').onclick=()=>{$('depotWarn').classList.remove('open');pendingCluster=false;runRouting(true);};
-$('dayBtn').onclick=openDayModal;$('dayClose').onclick=closeDayPanel;$('dayCancel').onclick=closeDayPanel;$('daySwap').onclick=swapDaysGlobal;$('dayA').onchange=()=>updateDayPreview('a');$('dayB').onchange=()=>updateDayPreview('b');
+$('dayBtn').onclick=openDayModal;$('dayClose').onclick=closeDayPanel;$('dayCancel').onclick=closeDayPanel;$('daySwap').onclick=swapDaysGlobal;$('dayA').onchange=()=>updateDayPreview('a');$('dayB').onchange=()=>updateDayPreview('b');$('daySales').onchange=onDaySalesChange;
 $('lassoBtn').onclick=()=>setLassoMode(!lassoMode);
 $('rcRunBtn').onclick=()=>runRouting(false);
 $('rcUndoBtn').onclick=undoRouting;
